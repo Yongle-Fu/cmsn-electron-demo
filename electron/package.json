@@ -1,0 +1,25 @@
+{
+  "name": "electron-cmsn",
+  "version": "1.0.0",
+  "description": "Crimson Electron Example",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron ."
+  },
+  "repository": "https://github.com/electron/electron-cmsn",
+  "keywords": [
+    "Electron",
+    "cmsn"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "cmsn-noble": "3.1.4",
+    "debug": "^4.3.2"
+  },
+  "devDependencies": {
+    "electron": "8.2.5",
+    "electron-rebuild": "^3.1.1",
+    "node-gyp": "^8.1.0"
+  }
+}

@@ -14,12 +14,13 @@
   "author": "GitHub",
   "license": "CC0-1.0",
   "dependencies": {
+    "debug": "^4.3.2",
     "cmsn-noble": "3.1.4",
-    "debug": "^4.3.2"
+    "cmsn-nrf-ble-driver-js": "2.7.2",
+    "cmsn-nrf-device-lister": "2.6.0"
   },
   "devDependencies": {
     "electron": "8.2.5",
-    "electron-rebuild": "^3.1.1",
     "node-gyp": "^8.1.0"
   }
 }

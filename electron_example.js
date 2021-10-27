@@ -179,7 +179,7 @@ const exampleListener = new CMSNDeviceListener({
     },
 });
 
-const useDongle = false;
+const useDongle = true;
 let cmsnSDK;
 const initSDK = async () => {
     console.debug('CrimsonSDK.init');

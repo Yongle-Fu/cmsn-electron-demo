@@ -5,8 +5,8 @@
 // selectively enable features needed in the rendering
 // process.
 
+/*
 const { ipcRenderer, remote } = require('electron');
-// const { CrimsonSDK } = require('./lib/cmsn_sdk');
 const { CrimsonSDK } = remote.require('./lib/cmsn_sdk');
 
 const useDongle = false; // not support connect at the same time
@@ -27,3 +27,4 @@ window.ipc.on("onDeviceStatusChange", function (_e, eeg) {
     console.log("EEG data received:", eeg.eegData.slice(0, 10));
     console.log("EEG filter data:", CrimsonSDK.getFilterData(eeg.eegData).slice(0, 10));
 });
+*/

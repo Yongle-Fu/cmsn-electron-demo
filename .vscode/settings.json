@@ -1,0 +1,47 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "cwctype": "cpp",
+        "system_error": "cpp",
+        "cstring": "c",
+        "ctime": "cpp",
+        "*.idl": "cpp",
+        "cstdio": "cpp",
+        "logger.h": "c",
+        "common.h": "c",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled",
+    // yapf
+    "python.formatting.provider": "yapf",
+    "python.formatting.yapfArgs": [
+        "--style",
+        "{column_limit: 200}"
+    ],
+    "files.autoSave": "afterDelay",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.markdownlint": true
+    },
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+}

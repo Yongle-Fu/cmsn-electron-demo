@@ -1,26 +1,57 @@
 {
   "name": "electron-cmsn",
+  "repository": "https://github.com/Yongle-Fu/cmsn-electron-demo",
+  "author": "Yongle Fu",
   "version": "1.0.0",
   "description": "Crimson Electron Example",
-  "main": "main.js",
-  "scripts": {
-    "dev": "electron ."
-  },
-  "repository": "https://github.com/electron/electron-cmsn",
   "keywords": [
     "Electron",
     "cmsn"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "main": "main.js",
+  "scripts": {
+    "compile": "electron-webpack",
+    "dev": "electron-webpack dev",
+    "prod": "electron-webpack prod",
+    "dist": "yarn compile && cp src/main/libcmsn/*.wasm dist/main && electron-builder",
+    "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
+  },
+  "electronWebpack": {
+    "main": {
+      "webpackConfig": "webpack.main.additions.js"
+    }
+  },
   "dependencies": {
-    "debug": "^4.3.2",
     "cmsn-noble": "3.1.4",
     "cmsn-nrf-ble-driver-js": "2.7.2",
-    "cmsn-nrf-device-lister": "2.6.0"
+    "cmsn-nrf-device-lister": "2.6.0",
+    "debug": "^4.3.2",
+    "electron-log": "^4.4.1",
+    "mobx": "^6.3.6",
+    "mobx-react": "^7.2.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "source-map-support": "^0.5.20"
   },
   "devDependencies": {
+    "@babel/preset-react": "^7.14.5",
+    "copy-webpack-plugin": "^6.3.2",
+    "clean-webpack-plugin": "^4.0.0",
+    "eslint-plugin-react": "^7.26.1",
     "electron": "8.2.5",
-    "node-gyp": "^8.1.0"
+    "electron-builder": "^22.13.1",
+    "electron-devtools-installer": "^3.2.0",
+    "electron-webpack": "^2.8.2",
+    "electron-webpack-eslint": "^6.0.0",
+    "electron-webpack-ts": "^4.0.1",
+    "eslint-plugin-html": "^6.2.0",
+    "node-gyp": "^8.1.0",
+    "node-sass": "^6.0.1",
+    "raw-loader": "^4.0.2",
+    "sass-loader": "^12.3.0",
+    "terser-brunch": "^4.1.0",
+    "typescript": "^4.4.4",
+    "webpack": "^4.42.1",
+    "webpack-build-notifier": "^2.3.0"
   }
 }

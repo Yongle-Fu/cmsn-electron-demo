@@ -1,3 +1,5 @@
 node_modules/
-lib/cmsn.js
-lib/cmsn.wasm
+dist/
+build/
+release/
+yarn-error.log

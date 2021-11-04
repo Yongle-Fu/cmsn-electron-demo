@@ -1,4 +1,5 @@
 /* eslint-disable require-atomic-updates */
+/* eslint-disable indent */
 const node_ble = require('cmsn-noble');
 const { textDecoder } = require('./cmsn_utils');
 const { CONNECTIVITY, CMSNError, BLE_UUID } = require('./cmsn_common');

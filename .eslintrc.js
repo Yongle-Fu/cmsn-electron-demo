@@ -33,6 +33,7 @@ module.exports = {
     __static: true,
   },
   rules: {
+    indent: ['error', 2],
     'comma-dangle': 1,
     quotes: [0, 'single'],
     'global-strict': 0,

@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable indent */
 const utils = require('./cmsn_utils');
 const CrimsonLogger = require('./cmsn_logger');
 const { CrimsonSDK, CMSNDeviceListener, cmsnDeviceMap } = require('./cmsn_sdk');

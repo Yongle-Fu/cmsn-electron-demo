@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 const debug = require('debug');
 const log = debug('cmsn');
 // const isDevelopment = process.env.NODE_ENV !== 'production';

@@ -1,4 +1,5 @@
 /* eslint-disable require-atomic-updates */
+/* eslint-disable indent */
 const loadWasm = require('./cmsn');
 const { hexToRGB, sleep } = require('./cmsn_utils');
 const EventEmitter = require('events');

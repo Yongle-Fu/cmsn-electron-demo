@@ -15,7 +15,7 @@ if (module.hot) {
 async function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1280,
+    width: 800,
     height: 800,
     webPreferences: {
       nodeIntegration: true,
@@ -29,6 +29,7 @@ async function createWindow() {
     switch (cmd) {
       case 'initSDK':
         await cmsn.initSDK();
+        event.reply(messageRes, { cmd: 'onInitiated' });
         break;
       case 'disposeSDK':
         await cmsn.disposeSDK();
@@ -105,14 +106,14 @@ async function createWindow() {
   });
 
   if (isDevelopment) {
-    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
-    installExtension(REACT_DEVELOPER_TOOLS)
-      .then((name) => {
-        console.log(`Added Extension:  ${name}`);
-      })
-      .catch((err) => {
-        console.log('An error occurred: ', err);
-      });
+    // const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
+    // installExtension(REACT_DEVELOPER_TOOLS)
+    //   .then((name) => {
+    //     console.log(`Added Extension:  ${name}`);
+    //   })
+    //   .catch((err) => {
+    //     console.log('An error occurred: ', err);
+    //   });
     mainWindow.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
     mainWindow.webContents.openDevTools();
   } else {

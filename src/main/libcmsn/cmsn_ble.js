@@ -29,57 +29,52 @@ class CMSNBleAdapter {
     });
   }
 
-  startListen(peripheral) {
-    peripheralMap.set(peripheral.address, peripheral);
-    peripheral.on('disconnect', () => {
-      this.reset(peripheral);
-      if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('disconnected'));
-    });
-  }
-
   reset(peripheral) {
+    if (!peripheral) return;
     peripheral.dataStreamCharacteristicWrite = undefined;
-    if (peripheral.dataStreamCharacteristicNotify) {
-      peripheral.dataStreamCharacteristicNotify.notify(false);
-      peripheral.dataStreamCharacteristicNotify = undefined;
-    }
-    if (peripheral.batteryLevelCharacteristic) {
-      peripheral.batteryLevelCharacteristic.notify(false);
-      peripheral.batteryLevelCharacteristic = undefined;
-    }
+    peripheral.dataStreamCharacteristicNotify = undefined;
+    peripheral.batteryLevelCharacteristic = undefined;
   }
 
   disconnect(address) {
     const peripheral = peripheralMap.get(address);
     if (!peripheral) {
-      CrimsonLogger.w(`[${peripheral.name}] ${peripheral.address} doesn't exists when disconnect`);
+      CrimsonLogger.w(address, `device unavaliable when disconnect`);
       return;
     }
-    if (peripheralMap.has(address)) peripheralMap.delete(address);
-    this.reset(peripheral);
     try {
       peripheral.disconnect();
     } catch (error) {
-      CrimsonLogger.w('peripheral.disconnect error');
+      CrimsonLogger.w(peripheral.name, 'disconnect error');
     }
+    // if (peripheralMap.has(address)) peripheralMap.delete(address);
   }
 
-  connect(address) {
-    const peripheral = peripheralMap.get(address);
-    if (!peripheral) {
-      CrimsonLogger.w(`[${peripheral.name}] ${peripheral.address} doesn't exists when connect`);
+  connect(address, peripheral) {
+    if (!address || !peripheral) {
+      CrimsonLogger.w('connect params invalid', address, peripheral);
       return;
     }
-    if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connecting'));
-    CrimsonLogger.i('connecting...', address);
+    peripheralMap.set(peripheral.address, peripheral);
+    var name = peripheral.name;
+
     peripheral.removeAllListeners('servicesDiscover');
+    peripheral.removeAllListeners('disconnect');
+    peripheral.on('disconnect', () => {
+      if (!peripheral) return;
+      this.reset(peripheral);
+      if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('disconnected'));
+    });
+
+    CrimsonLogger.i('connecting...', address, name);
+    if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connecting'));
     peripheral.connect(async (error) => {
-      if (error) {
-        this.logError(peripheral.name, 'connect error');
+      if (!peripheral && error) {
+        this.logError(name, 'connect error');
         return;
       }
 
-      this.logMessage(peripheral.name, 'discoverServices...');
+      this.logMessage(name, 'discoverServices...');
       try {
         const services = await this.discoverServices(peripheral);
         CrimsonLogger.d('services', services);
@@ -95,7 +90,8 @@ class CMSNBleAdapter {
   }
 
   discoverServices(peripheral) {
-    // return peripheral.discoverServicesAsync();
+    if (!peripheral) return;
+    var name = peripheral.name;
     return new Promise((resolve, reject) => {
       peripheral.discoverServices(
         [
@@ -106,7 +102,7 @@ class CMSNBleAdapter {
         (error, services) => {
           if (error) {
             CrimsonLogger.e(error);
-            reject(Error(`[${peripheral.name}] Error discovering services: ${JSON.stringify(error)}.`));
+            reject(Error(`[${name}] Error discovering services: ${JSON.stringify(error)}.`));
           } else resolve(services);
         }
       );
@@ -114,12 +110,14 @@ class CMSNBleAdapter {
   }
 
   getCharacteristics(peripheral, service) {
+    if (!peripheral) return;
+    var name = peripheral.name;
     return new Promise((resolve, reject) => {
-      if (peripheral.state !== 'connected') {
-        reject(Error(`[${peripheral.name}], device state changed to ${peripheral.state}`));
+      if (!peripheral || peripheral.state !== 'connected') {
+        reject(Error(`[${name}], device is not connected`));
         return;
       }
-      this.logMessage(peripheral.name, '> Service: ' + service.uuid + ' discoverCharacteristics...');
+      this.logMessage(name, '> Service: ' + service.uuid + ' discoverCharacteristics...');
       try {
         service.discoverCharacteristics(
           [
@@ -134,8 +132,8 @@ class CMSNBleAdapter {
           ].map((e) => e.toLowerCase()),
           (error, characteristics) => {
             if (error) {
-              this.logWarn(peripheral.name, error);
-              reject(Error(`[${peripheral.name}], discoverCharacteristics error=${error}`));
+              this.logWarn(name, error);
+              reject(Error(`[${name}], discoverCharacteristics error=${error}`));
             } else resolve(characteristics);
           }
         );
@@ -174,7 +172,8 @@ class CMSNBleAdapter {
   }
 
   async onDiscoverCharacteristics(peripheral, characteristics) {
-    var name = peripheral.name ? peripheral.name : '';
+    if (!peripheral) return;
+    var name = peripheral.name;
     for (let characteristic of characteristics) {
       if (peripheral.state !== 'connected') {
         CrimsonLogger.w(name, 'device state changed to ' + peripheral.state);
@@ -243,6 +242,7 @@ class CMSNBleAdapter {
   }
 
   onDataStreamCharacteristicReady(peripheral) {
+    if (!peripheral) return;
     if (peripheral.state !== 'connected') {
       this.logError(peripheral.name, 'device state changed to ' + peripheral.state);
       return;
@@ -261,19 +261,20 @@ class CMSNBleAdapter {
     return new Promise((resolve, reject) => {
       const peripheral = peripheralMap.get(address);
       if (!peripheral) {
-        CrimsonLogger.w(`[${peripheral.name}] ${peripheral.address} doesn't exists when writeData`);
-        reject(Error('cannot found device when writeData'));
+        CrimsonLogger.w(address, `device unavaliable when writeData`);
+        reject(Error('device unavaliable when writeData'));
         return;
       }
+      var name = peripheral.name;
       if (!peripheral.dataStreamCharacteristicWrite) {
-        this.logError(peripheral.name, 'dataStreamCharacteristicWrite is unavailable');
+        this.logError(name, 'dataStreamCharacteristicWrite is unavailable');
         reject(Error('dataStreamCharacteristicWrite is unavailable'));
         return;
       }
       const withoutResponse = ack !== true;
       peripheral.dataStreamCharacteristicWrite.write(Buffer.from(data), withoutResponse, (error) => {
         if (error) {
-          CrimsonLogger.w(peripheral.name, 'write data error', error);
+          CrimsonLogger.w(name, 'write data error', error);
           reject(error);
         } else {
           resolve();

@@ -10,10 +10,6 @@ const adapterFactory = AdapterFactory.getInstance(undefined, { enablePolling: fa
 const lister = new DeviceLister({ serialport: true, nordicUsb: true });
 
 class CMSNDongleAdapter {
-  startListen(peripheral) {
-    peripheralMap.set(peripheral.address, peripheral);
-  }
-
   dispose() {
     CrimsonLogger.i('closeAdapter');
     if (!this.adapter) return;
@@ -246,7 +242,7 @@ class CMSNDongleAdapter {
         const device = adapter._getDeviceByCharacteristicId(characteristic.instanceId);
         const peripheral = peripheralMap.get(device.address);
         if (!peripheral) {
-          CrimsonLogger.w(`[${device.address}] doesn't exists when Received Data`);
+          CrimsonLogger.w(`[${device.address}] device unavaliable when received data`);
           return;
         }
         const data = Uint8Array.from(characteristic.value);
@@ -255,7 +251,7 @@ class CMSNDongleAdapter {
         const device = adapter._getDeviceByCharacteristicId(characteristic.instanceId);
         const peripheral = peripheralMap.get(device.address);
         if (!peripheral) {
-          CrimsonLogger.w(`[${device.address}] doesn't exists when Received battery level changed`);
+          CrimsonLogger.w(`[${device.address}] device unavaliable when received battery level changed`);
           return;
         }
         const batteryLevel = characteristic.value[0];
@@ -311,23 +307,24 @@ class CMSNDongleAdapter {
         });
       }
     }
-    if (peripheralMap.has(address)) peripheralMap.delete(address);
+    // if (peripheralMap.has(address)) peripheralMap.delete(address);
   }
 
-  connect(address) {
-    if (!this.adapter) {
-      CrimsonLogger.w(` [${address}] `, 'adapter is null');
+  connect(address, peripheral) {
+    if (!address || !peripheral) {
+      CrimsonLogger.w('connect params invalid', address, peripheral);
       return;
     }
-    const peripheral = peripheralMap.get(address);
-    if (!peripheral) {
-      CrimsonLogger.w('Could not connect, cannot found peripheral.', peripheral.name);
+    if (!this.adapter) {
+      CrimsonLogger.w(` [${address}] `, 'adapter is null');
       return;
     }
     if (this.adapter.state.connecting) {
       CrimsonLogger.w('Could not connect, another connect is in progress.', peripheral.name);
       return;
     }
+
+    peripheralMap.set(peripheral.address, peripheral);
     if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connecting'));
     CrimsonLogger.i(`Connecting to`, peripheral.name, peripheral.address, peripheral.addressType);
     const options = {
@@ -350,7 +347,7 @@ class CMSNDongleAdapter {
   async onDeviceDisconnected(device) {
     const peripheral = peripheralMap.get(device.address);
     if (!peripheral) {
-      CrimsonLogger.w(`[${device.address}]`, `doesn't exists onDeviceDisconnected`);
+      CrimsonLogger.w(`[${device.address}]`, `device unavaliable when onDeviceDisconnected`);
       return;
     }
     peripheral.batteryLevelCharacteristic = null;

@@ -191,6 +191,7 @@ async function disconnectAll() {
   }
   cmsnDeviceMap.clear();
 
+  _targetDeviceId = null;
   _scannedDeviceMap.clear();
   await stopScan();
 }
@@ -198,10 +199,11 @@ async function disconnectAll() {
 /** Scan **/
 var _onScanning = null;
 var _onFoundDevices = null;
-async function startScan(onScanning, onFoundDevices) {
+async function startScan(onScanning, onFoundDevices, targetDeviceId) {
   CrimsonLogger.i('startScan');
   _onScanning = onScanning;
   _onFoundDevices = onFoundDevices;
+  _targetDeviceId = targetDeviceId;
 
   await initSDK();
   if (_cmsnSDK.scanning) return;
@@ -227,7 +229,7 @@ const _scannedDeviceMap = new Map();
 var _scanTimer;
 async function _doScan() {
   if (!_cmsnSDK || _cmsnSDK.scanning) return;
-  console.log({ targetDeviceId: _targetDeviceId, onFoundDevices: _onFoundDevices });
+  // console.log({ targetDeviceId: _targetDeviceId, onFoundDevices: _onFoundDevices });
   if (!_targetDeviceId && !_onFoundDevices) return;
 
   if (_onScanning) _onScanning(true);
@@ -236,7 +238,7 @@ async function _doScan() {
     CrimsonLogger.d('[CMSN] found device', device.id, device && device.name);
     _scannedDeviceMap.set(device.id, device);
 
-    if (device.id === _targetDeviceId) await _onFoundTargetDevice(device);
+    if (_targetDeviceId && _targetDeviceId == device.id) await _onFoundTargetDevice(device);
   });
 
   if (_onFoundDevices) {
@@ -258,8 +260,6 @@ async function _onFoundTargetDevice(device) {
 
   device.delegate = _targetDeviceDelegate;
   device.listener = _deviceListener;
-  _targetDeviceId = null;
-  _targetDeviceDelegate = null;
 
   await device.connect();
   if (_subscription) {
@@ -273,23 +273,21 @@ async function connect(deviceId, delegate) {
   console.log(`[CMSN], connectTargetDevice ${deviceId}`);
   if (typeof deviceId !== 'string' || deviceId.length == 0) return;
 
-  _targetDeviceId = deviceId;
   _targetDeviceDelegate = delegate;
-
   var device = _scannedDeviceMap.get(deviceId);
   if (device) {
     // 连接到已扫描到的设备
     _onFoundTargetDevice(device);
   } else {
     // 根据设备ID扫描并连接
-    await startScan();
+    await startScan(null, null, deviceId);
   }
 }
 
 const disconnect = async (deviceId, cb) => {
   setEnableReconnect(false);
   await stopScan();
-
+  if (_targetDeviceId == deviceId) _targetDeviceId = null;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) {
     if (utils.isWin64()) device.shutdown(); // Windows下断开连接不及时，故直接发送关机指令
@@ -327,7 +325,7 @@ let _reconnectTimer = null;
 function _startReconnectTimer() {
   if (!_reconnectEnabled) return;
   if (_reconnectTimer == null) {
-    _reconnectTimer = setInterval(_reconnect, _useDongle ? 1000 : 3000);
+    _reconnectTimer = setInterval(_reconnect, 3000);
     CrimsonLogger.i('started _reconnect timer');
   }
 }
@@ -335,13 +333,16 @@ function _startReconnectTimer() {
 function _stopReconnectTimer() {
   if (_reconnectTimer) {
     clearInterval(_reconnectTimer);
+    _reconnectTimer = null;
     CrimsonLogger.i('stoped _reconnect timer');
   }
 }
 
 async function _reconnect() {
-  if (!_reconnectEnabled) return;
-  if (_adapterDisbaled) return;
+  if (!_reconnectEnabled || !_adapterDisbaled || cmsnDeviceMap.size == 0) {
+    _stopReconnectTimer();
+    return;
+  }
 
   for (let device of cmsnDeviceMap.values()) {
     if (device.isDisconnected) {

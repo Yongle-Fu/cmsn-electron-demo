@@ -228,7 +228,9 @@ class CrimsonSDK extends EventEmitter {
     cmsnDeviceMap.forEach((d, _) => {
       d.disconnect();
     });
+    cmsnDeviceMap.clear();
     await sleep(200);
+
     if (!cmsnSDK) return;
     if (cmsnSDK.adapter) cmsnSDK.adapter.dispose();
     cmsnSDK = null;
@@ -441,40 +443,37 @@ class CMSNDevice {
   }
 
   disconnect() {
-    if (this.isDisconnected || this.isDisconnecting) {
-      this.logWarn(`Device is already disconnected or disconnecting`);
-    } else {
-      this.logMessage(`disconnect...`);
-      cmsnSDK.adapter.disconnect(this.id);
-    }
-    if (cmsnDeviceMap.has(this.id)) cmsnDeviceMap.delete(this.id);
+    this.logMessage(`disconnect...`);
+    if (this.peripheral) this.peripheral.onReceiveData = null;
+    var id = this.id;
+    cmsnSDK.adapter.disconnect(id);
+    if (cmsnDeviceMap.has(id)) cmsnDeviceMap.delete(id);
   }
 
   connect() {
-    if (!this.devicePtr) {
-      this.devicePtr = libcmsn.cmsn_create_device(this.id);
-      cmsnDeviceMap.set(this.id, this);
-
-      const that = this;
-      this.peripheral.onReceiveData = (buffer) => {
-        // if (that.paired) {
-        //     CrimsonLogger.d('onReceiveData', buffer.length);
-        //     CrimsonLogger.d('onReceiveData', buffer);
-        //     return;
-        // }
-        libcmsn.cmsn_did_receive_data(that.devicePtr, buffer, buffer.length);
-      };
-      this.peripheral.onConnectivityChanged = (connectivity) => {
-        that.connectivity = connectivity;
-      };
-      cmsnSDK.adapter.startListen(this.peripheral);
-    }
     if (!this.isDisconnected) {
       this.onError(`The device is not disconnected when calling connect`);
       return;
     }
 
-    cmsnSDK.adapter.connect(this.id);
+    const that = this;
+    if (!this.devicePtr) {
+      this.devicePtr = libcmsn.cmsn_create_device(this.id);
+      this.peripheral.onConnectivityChanged = (connectivity) => {
+        that.connectivity = connectivity;
+      };
+    }
+
+    cmsnDeviceMap.set(this.id, this);
+    this.peripheral.onReceiveData = (buffer) => {
+      // if (that.paired) {
+      //     CrimsonLogger.d('onReceiveData', buffer.length);
+      //     CrimsonLogger.d('onReceiveData', buffer);
+      //     return;
+      // }
+      libcmsn.cmsn_did_receive_data(that.devicePtr, buffer, buffer.length);
+    };
+    cmsnSDK.adapter.connect(this.id, this.peripheral);
   }
 
   toUint8Array(ptr) {

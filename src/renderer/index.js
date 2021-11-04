@@ -10,12 +10,12 @@
 // }
 // console.log(module.hot);
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const ReactDOM = require('react-dom');
 const React = require('react');
 const { observer } = require('mobx-react');
-const { cmsnObservable, CrimsonActions } = require('./CrimsonActions');
+const { scanObservable, cmsnObservable, CrimsonActions } = require('./CrimsonActions');
 const { ScanButton, ScanDeviceList } = require('./ScanDeviceWidget');
 const { CrimsonDeviceList } = require('./CrimsonDeviceWidget');
 
@@ -39,20 +39,20 @@ const App = observer(
     }
 
     render() {
-      var scanning = this.props.cmsnObservable.scanning;
-      var cmsnDeviceMap = this.props.cmsnObservable.cmsnDeviceMap;
+      var scanning = this.props.scanObservable.scanning;
+      var operationDevices = this.props.cmsnObservable.devices;
+      // console.log(operationDevices.length);
       var devicesList =
-        cmsnDeviceMap.size > 0 ? (
+        operationDevices.length > 0 ? (
           <div>
             <p />
             连接中/已连接设备列表
-            <CrimsonDeviceList cmsnDeviceMap={cmsnDeviceMap} />
+            <CrimsonDeviceList devices={operationDevices} />
           </div>
         ) : null;
       // var debugBtn = isDevelopment ? (
       //   <button onClick={() => CrimsonActions.disconnectAll()}>disconnectAll</button>
       // ) : null;
-
       return (
         <div>
           {/* {debugBtn} */}
@@ -61,7 +61,7 @@ const App = observer(
           <ScanButton scanning={scanning} />
           <p />
           扫描到的设备列表
-          <ScanDeviceList devices={this.props.cmsnObservable.devices} />
+          <ScanDeviceList devices={this.props.scanObservable.devices} />
           {devicesList}
         </div>
       );
@@ -71,4 +71,4 @@ const App = observer(
 
 const app = document.createElement('div');
 document.body.appendChild(app);
-ReactDOM.render(<App cmsnObservable={cmsnObservable} />, app);
+ReactDOM.render(<App cmsnObservable={cmsnObservable} scanObservable={scanObservable} />, app);

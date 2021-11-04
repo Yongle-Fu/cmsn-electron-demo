@@ -1,10 +1,9 @@
 const React = require('react');
 const { CONNECTIVITY, CONTACT_STATE, ORIENTATION } = require('../main/libcmsn/cmsn_common');
+const { CrimsonActions } = require('./CrimsonActions');
 
 export function CrimsonDeviceList(props) {
-  return Array.from(props.cmsnDeviceMap.values()).map((device) => (
-    <CrimsonDeviceWidget key={device.id} device={device} />
-  ));
+  return props.devices.map((device) => <CrimsonDeviceWidget key={device.id} device={device} />);
 }
 
 class CrimsonDeviceWidget extends React.Component {
@@ -19,6 +18,7 @@ class CrimsonDeviceWidget extends React.Component {
           ID: {device.id}, name: {device.name}, batteryLevel: {device.batteryLevel}
         </p>
         <p>DeviceInfo: {JSON.stringify(device.deviceInfo)}</p>
+        <button onClick={() => CrimsonActions.disconnect(device)}>disconnect</button>
         <p>connectivity: {CONNECTIVITY(this._safeInt(device.connectivity))}</p>
         <p>contactState: {CONTACT_STATE(this._safeInt(device.contactState))}</p>
         <p>orientation: {ORIENTATION(this._safeInt(device.orientation))}</p>

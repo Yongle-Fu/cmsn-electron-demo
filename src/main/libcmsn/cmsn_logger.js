@@ -1,14 +1,19 @@
 const debug = require('debug');
 const log = debug('cmsn');
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// const isDevelopment = process.env.NODE_ENV !== 'production';
+// const shouldLogging = !isDevelopment;
+const shouldLogging = true;
+// const d = shouldLogging ? console.log : log.extend('debug');
+// const i = shouldLogging ? console.log : log.extend('info');
+// const w = shouldLogging ? console.log : log.extend('warn');
+// const e = shouldLogging ? console.log : log.extend('error');
+const d = log.extend('debug');
+const i = log.extend('info');
+const w = log.extend('warn');
+const e = log.extend('error');
 
-const d = !isDevelopment ? console.log : log.extend('debug');
-const i = !isDevelopment ? console.log : log.extend('info');
-const w = !isDevelopment ? console.log : log.extend('warn');
-const e = !isDevelopment ? console.log : log.extend('error');
-
-if (!isDevelopment) {
-  log.log = console.log.bind(console);
+if (shouldLogging) {
+  // log.log = console.log.bind(console);
 
   const electronLog = require('electron-log');
   console.log = electronLog.log;

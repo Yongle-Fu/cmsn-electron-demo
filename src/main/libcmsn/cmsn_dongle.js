@@ -1,6 +1,7 @@
 /* eslint-disable require-atomic-updates */
 /* eslint-disable indent */
-const { AdapterFactory } = require('cmsn-nrf-ble-driver-js');
+// const { AdapterFactory } = require('cmsn-nrf-ble-driver-js');
+const { AdapterFactory } = require('pc-ble-driver-js');
 const { textDecoder, sleep } = require('./cmsn_utils');
 const DeviceLister = require('cmsn-nrf-device-lister');
 const { CMSNError, BLE_UUID, CONNECTIVITY } = require('./cmsn_common');

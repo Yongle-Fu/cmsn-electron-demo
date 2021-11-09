@@ -8,4 +8,7 @@ cd electron
 nvm use 12.18.3
 npm i
 DEBUG=* npm run dev
+
+"cmsn-nrf-ble-driver-js": "2.7.2",
+"cmsn-nrf-device-lister": "2.6.0",
 ```

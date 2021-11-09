@@ -18,13 +18,13 @@ const cmsnObservable = observable({
 const _cmsnMap = new Map();
 
 class CrimsonActions {
-  static _initiated = false;
+  static _initialized = false;
   static initSDK() {
     ipcRenderer.on(messageRes, (_, arg) => {
       switch (arg.cmd) {
-        case 'onInitiated':
+        case 'onInitialized':
           console.log(arg);
-          this._initiated = true;
+          this._initialized = true;
           this._autoConnect();
           break;
         case 'onScanning':
@@ -70,13 +70,13 @@ class CrimsonActions {
   }
 
   static disposeSDK() {
-    this._initiated = false;
+    this._initialized = false;
     this._sendCmd('disposeSDK');
   }
 
   static _sendCmd(cmd, params) {
-    if (!this._initiated && cmd != 'initSDK') {
-      console.log(cmd, 'while Crimson SDK is not initialed');
+    if (!this._initialized && cmd != 'initSDK') {
+      console.log(cmd, 'while Crimson SDK is not initialized');
       return;
     }
     console.log('[CrimsonActions]', cmd);

@@ -29,7 +29,7 @@ async function createWindow() {
     switch (cmd) {
       case 'initSDK':
         await cmsn.initSDK();
-        event.reply(messageRes, { cmd: 'onInitiated' });
+        event.reply(messageRes, { cmd: 'onInitialized' });
         break;
       case 'disposeSDK':
         await cmsn.disposeSDK();

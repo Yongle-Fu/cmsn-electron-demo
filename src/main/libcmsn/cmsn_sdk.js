@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable require-atomic-updates */
 /* eslint-disable indent */
 const loadWasm = require('./cmsn');

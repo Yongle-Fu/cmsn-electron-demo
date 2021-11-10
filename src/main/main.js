@@ -1,3 +1,4 @@
+/* eslint-disable no-fallthrough */
 const { app, BrowserWindow, ipcMain } = require('electron');
 // const path = require('path');
 // const url = require('url');
@@ -27,81 +28,81 @@ async function createWindow() {
     console.log('main receive:', arg);
     var cmd = arg.cmd;
     switch (cmd) {
-      case 'initSDK':
-        await cmsn.initSDK();
-        event.reply(messageRes, { cmd: 'onInitialized' });
-        break;
-      case 'disposeSDK':
-        await cmsn.disposeSDK();
-        break;
-      case 'startScan':
-        await cmsn.startScan(
-          (scanning) => {
-            event.reply(messageRes, { cmd: 'onScanning', scanning: scanning });
-          },
-          (devices) => {
-            event.reply(messageRes, {
-              cmd: 'onFoundDevices',
-              devices: devices.map((e) => ({
-                id: e.id,
-                name: e.name,
-                isInPairingMode: e.isInPairingMode,
-                batteryLevel: e.batteryLevel,
-              })),
-            });
-          }
-        );
-        break;
-      case 'stopScan':
-        await cmsn.stopScan();
-        break;
-      case 'connect':
-        var deviceId = arg.deviceId;
-        const deviceListener = {
-          onError: (error) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onError', error: error });
-          },
-          onDeviceInfoReady: (deviceInfo) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onDeviceInfoReady', deviceInfo: deviceInfo });
-          },
-          onConnectivityChanged: (connectivity) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onConnectivityChanged', connectivity: connectivity });
-          },
-          onContactStateChanged: (contactState) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onContactStateChanged', contactState: contactState });
-          },
-          onOrientationChanged: (orientation) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onOrientationChanged', orientation: orientation });
-          },
-          onIMUData: (imu) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onIMUData', imu: imu });
-          },
-          onEEGData: (eeg) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onEEGData', eeg: eeg });
-          },
-          onBrainWave: (stats) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onBrainWave', stats: stats });
-          },
-          onAttention: (attention) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onAttention', attention: attention });
-          },
-          onMeditation: (meditation) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onMeditation', meditation: meditation });
-          },
-          onSocialEngagement: (social) => {
-            event.reply(messageRes, { deviceId: deviceId, cmd: 'onSocialEngagement', social: social });
-          },
-        };
-        await cmsn.connect(deviceId, deviceListener);
-        break;
-      case 'disconnect':
-        var deviceId = arg.deviceId;
-        await cmsn.disconnect(deviceId);
-        break;
-      case 'disconnectAll':
-        await cmsn.disconnectAll();
-      default:
-        break;
+    case 'initSDK':
+      await cmsn.initSDK();
+      event.reply(messageRes, { cmd: 'onInitialized' });
+      break;
+    case 'disposeSDK':
+      await cmsn.disposeSDK();
+      break;
+    case 'startScan':
+      await cmsn.startScan(
+        (scanning) => {
+          event.reply(messageRes, { cmd: 'onScanning', scanning: scanning });
+        },
+        (devices) => {
+          event.reply(messageRes, {
+            cmd: 'onFoundDevices',
+            devices: devices.map((e) => ({
+              id: e.id,
+              name: e.name,
+              isInPairingMode: e.isInPairingMode,
+              batteryLevel: e.batteryLevel,
+            })),
+          });
+        }
+      );
+      break;
+    case 'stopScan':
+      await cmsn.stopScan();
+      break;
+    case 'connect':
+      var deviceId = arg.deviceId;
+      // eslint-disable-next-line no-case-declarations
+      const deviceListener = {
+        onError: (error) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onError', error: error });
+        },
+        onDeviceInfoReady: (deviceInfo) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onDeviceInfoReady', deviceInfo: deviceInfo });
+        },
+        onConnectivityChanged: (connectivity) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onConnectivityChanged', connectivity: connectivity });
+        },
+        onContactStateChanged: (contactState) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onContactStateChanged', contactState: contactState });
+        },
+        onOrientationChanged: (orientation) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onOrientationChanged', orientation: orientation });
+        },
+        onIMUData: (imu) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onIMUData', imu: imu });
+        },
+        onEEGData: (eeg) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onEEGData', eeg: eeg });
+        },
+        onBrainWave: (stats) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onBrainWave', stats: stats });
+        },
+        onAttention: (attention) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onAttention', attention: attention });
+        },
+        onMeditation: (meditation) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onMeditation', meditation: meditation });
+        },
+        onSocialEngagement: (social) => {
+          event.reply(messageRes, { deviceId: deviceId, cmd: 'onSocialEngagement', social: social });
+        },
+      };
+      await cmsn.connect(deviceId, deviceListener);
+      break;
+    case 'disconnect':
+      await cmsn.disconnect(deviceId);
+      break;
+    case 'disconnectAll':
+      await cmsn.disconnectAll();
+    default:
+      break;
     }
   });
 

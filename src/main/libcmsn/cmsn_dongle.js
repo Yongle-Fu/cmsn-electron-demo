@@ -194,7 +194,7 @@ class CMSNDongleAdapter {
       adapter.dataLengthUpdate(
         device.instanceId,
         { max_rx_octets: dataLength, max_tx_octets: dataLength },
-        (error, _updatedDevice) => {
+        (error) => {
           if (error) {
             CrimsonLogger.e(error.message);
           }
@@ -213,7 +213,7 @@ class CMSNDongleAdapter {
       );
     });
 
-    adapter.on('connParamUpdate', (device, _connectionParams) => {
+    adapter.on('connParamUpdate', (device) => {
       CrimsonLogger.d(device.address, `connParamUpdate: ${device.instanceId}.`);
     });
 
@@ -494,7 +494,7 @@ class CMSNDongleAdapter {
   startNotification(characteristic) {
     return new Promise((resolve, reject) => {
       if (!this.adapter) reject(Error('adapter is null'));
-      this.adapter.getDescriptors(characteristic.instanceId, (error, _descriptors) => {
+      this.adapter.getDescriptors(characteristic.instanceId, (error) => {
         if (error) {
           reject(Error(`Error discovering notify characteristic's CCCD: ${error}.`));
         } else {

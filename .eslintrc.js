@@ -1,7 +1,7 @@
 module.exports = {
   /* your base configuration of choice */
   // extends: 'eslint:recommended',
-  ignorePatterns: ['src/main/lib/*.js'],
+  ignorePatterns: ['src/main/libcmsn/cmsn.*', 'build/*'],
   extends: [
     'eslint:recommended', //所有在规则页面被标记为“✔️”的规则将会默认开启
     'plugin:react/recommended',
@@ -33,8 +33,8 @@ module.exports = {
     __static: true,
   },
   rules: {
-    indent: ['error', 2],
-    'comma-dangle': 1,
+    indent: ['warn', 2],
+    'comma-dangle': 0,
     quotes: [0, 'single'],
     'global-strict': 0,
     'no-extra-semi': 1,

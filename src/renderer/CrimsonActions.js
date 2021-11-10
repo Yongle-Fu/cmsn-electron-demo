@@ -22,47 +22,47 @@ class CrimsonActions {
   static initSDK() {
     ipcRenderer.on(messageRes, (_, arg) => {
       switch (arg.cmd) {
-        case 'onInitialized':
-          console.log(arg);
-          this._initialized = true;
-          this._autoConnect();
-          break;
-        case 'onScanning':
-          console.log(arg);
-          runInAction(() => {
-            scanObservable.scanning = arg.scanning;
-          });
-          break;
-        case 'onFoundDevices':
-          console.log(arg);
-          runInAction(() => {
-            scanObservable.devices = arg.devices;
-          });
-          break;
-        case 'onError':
-          console.log('[onError] deviceId', arg.deviceId, 'error', error);
-          break;
+      case 'onInitialized':
+        console.log(arg);
+        this._initialized = true;
+        this._autoConnect();
+        break;
+      case 'onScanning':
+        console.log(arg);
+        runInAction(() => {
+          scanObservable.scanning = arg.scanning;
+        });
+        break;
+      case 'onFoundDevices':
+        console.log(arg);
+        runInAction(() => {
+          scanObservable.devices = arg.devices;
+        });
+        break;
+      case 'onError':
+        console.log('[onError] deviceId', arg.deviceId, 'error', arg.error);
+        break;
 
         // case 'onDeviceSystemInfo':
         // case 'onDeviceBatteryLevel':
-        case 'onDeviceInfoReady':
-        case 'onConnectivityChanged':
-        case 'onContactStateChanged':
-        case 'onOrientationChanged':
-          console.log(arg);
-          this.onDeviceEvent(arg);
-          break;
+      case 'onDeviceInfoReady':
+      case 'onConnectivityChanged':
+      case 'onContactStateChanged':
+      case 'onOrientationChanged':
+        console.log(arg);
+        this.onDeviceEvent(arg);
+        break;
 
-        case 'onEEGData':
-        case 'onIMUData':
-        case 'onBrainWave':
-        case 'onAttention':
-        case 'onMeditation':
-        case 'onSocialEngagement':
-          this.onDeviceEvent(arg);
-          break;
-        default:
-          break;
+      case 'onEEGData':
+      case 'onIMUData':
+      case 'onBrainWave':
+      case 'onAttention':
+      case 'onMeditation':
+      case 'onSocialEngagement':
+        this.onDeviceEvent(arg);
+        break;
+      default:
+        break;
       }
     });
 
@@ -153,63 +153,63 @@ class CrimsonActions {
     if (!device) return;
 
     switch (arg.cmd) {
-      case 'onDeviceInfoReady':
-        device.deviceInfo = arg.deviceInfo;
-        this._notifyUpdateDevices();
-        break;
-      case 'onConnectivityChanged':
-        console.log('onConnectivityChanged', arg.connectivity);
-        device.connectivity = arg.connectivity;
-        if (device.connectivity == CONNECTIVITY.enum('connected')) {
-          if (!device.store) {
-            device.store = true;
-            this._updateDeviceRecords();
-          }
-        } else {
-          //reset other state when device is not connected
-          device.contactState = 0;
-          device.orientation = 0;
-          device.attention = 0;
-          device.meditation = 0;
-          device.social = 0;
-          device.stats = null;
+    case 'onDeviceInfoReady':
+      device.deviceInfo = arg.deviceInfo;
+      this._notifyUpdateDevices();
+      break;
+    case 'onConnectivityChanged':
+      console.log('onConnectivityChanged', arg.connectivity);
+      device.connectivity = arg.connectivity;
+      if (device.connectivity == CONNECTIVITY.enum('connected')) {
+        if (!device.store) {
+          device.store = true;
+          this._updateDeviceRecords();
         }
-        this._notifyUpdateDevices();
-        break;
-      case 'onContactStateChanged':
-        device.contactState = arg.contactState;
-        this._notifyUpdateDevices();
+      } else {
+        //reset other state when device is not connected
+        device.contactState = 0;
+        device.orientation = 0;
+        device.attention = 0;
+        device.meditation = 0;
+        device.social = 0;
+        device.stats = null;
+      }
+      this._notifyUpdateDevices();
+      break;
+    case 'onContactStateChanged':
+      device.contactState = arg.contactState;
+      this._notifyUpdateDevices();
 
-        break;
-      case 'onOrientationChanged':
-        device.orientation = arg.orientation;
-        this._notifyUpdateDevices();
-        break;
-      case 'onBrainWave':
-        device.stats = arg.stats;
-        this._notifyUpdateDevices();
-        break;
-      case 'onAttention':
-        console.log(arg);
-        device.attention = arg.attention;
-        this._notifyUpdateDevices();
-        break;
-      case 'onMeditation':
-        device.meditation = arg.meditation;
-        this._notifyUpdateDevices();
-        break;
-      case 'onSocialEngagement':
-        device.social = arg.social;
-        this._notifyUpdateDevices();
-        break;
-      case 'onEEGData':
-        device.eeg = arg.eeg;
-        break;
-      case 'onIMUData':
-        device.imu = arg.imu;
-        break;
-      default:
-        break;
+      break;
+    case 'onOrientationChanged':
+      device.orientation = arg.orientation;
+      this._notifyUpdateDevices();
+      break;
+    case 'onBrainWave':
+      device.stats = arg.stats;
+      this._notifyUpdateDevices();
+      break;
+    case 'onAttention':
+      console.log(arg);
+      device.attention = arg.attention;
+      this._notifyUpdateDevices();
+      break;
+    case 'onMeditation':
+      device.meditation = arg.meditation;
+      this._notifyUpdateDevices();
+      break;
+    case 'onSocialEngagement':
+      device.social = arg.social;
+      this._notifyUpdateDevices();
+      break;
+    case 'onEEGData':
+      device.eeg = arg.eeg;
+      break;
+    case 'onIMUData':
+      device.imu = arg.imu;
+      break;
+    default:
+      break;
     }
   }
 

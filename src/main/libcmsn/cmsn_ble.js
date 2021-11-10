@@ -188,7 +188,7 @@ class CMSNBleAdapter {
 
         case BLE_UUID.CHARACTERISTIC_UUID_DATA_STREAM_NOTIFY:
           peripheral.dataStreamCharacteristicNotify = characteristic;
-          characteristic.on('read', (buffer, _) => {
+          characteristic.on('read', (buffer) => {
             if (peripheral.onReceiveData) peripheral.onReceiveData(buffer);
           });
           try {
@@ -201,7 +201,7 @@ class CMSNBleAdapter {
 
         case BLE_UUID.CHARACTERISTIC_UUID_BATTERY_LEVEL:
           peripheral.batteryLevelCharacteristic = characteristic;
-          characteristic.on('read', (buffer, _) => {
+          characteristic.on('read', (buffer) => {
             if (buffer.byteLength > 0) {
               peripheral.batteryLevel = buffer[0];
               this.logMessage(name, '> Battery Level is ' + peripheral.batteryLevel + '%');
@@ -313,7 +313,7 @@ class CMSNBleAdapter {
   }
 
   stopScan() {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve) => {
       node_ble.stopScanning(() => resolve());
       this.onStopScan();
     });
@@ -351,7 +351,7 @@ class CMSNBleAdapter {
             if (p.name == undefined && p.isInPairingMode) {
                 CrimsonLogger.i(p);
                 p.name = 'CM_' + p.id;
-            } 
+            }
           */
 
           CrimsonLogger.d(

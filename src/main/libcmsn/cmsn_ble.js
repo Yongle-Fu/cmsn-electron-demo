@@ -2,7 +2,7 @@
 /* eslint-disable indent */
 const node_ble = require('cmsn-noble');
 const { textDecoder } = require('./cmsn_utils');
-const { CONNECTIVITY, CMSNError, BLE_UUID } = require('./cmsn_common');
+const { CONNECTIVITY, BLE_UUID } = require('./cmsn_common');
 const CrimsonLogger = require('./cmsn_logger');
 
 const peripheralMap = new Map(); // (uuid: string, peripheral)
@@ -11,30 +11,27 @@ class CMSNBleAdapter {
   logMessage(name, message) {
     CrimsonLogger.i(name, message);
   }
-  logError(name, message) {
-    CrimsonLogger.e(`[ERROR] [${name}]`, message);
-  }
 
   initAdapter(listener) {
     if (!listener) return;
     const that = this;
     node_ble.on('stateChange', (state) => {
       CrimsonLogger.i('ble state change to', state);
-      if (state === 'poweredOn') {
-        that.available = true;
-        if (listener.onAdapterAvailable) listener.onAdapterAvailable();
-      } else {
-        that.available = false;
-        if (listener.onError) listener.onError(CMSNError.enum('ble_power_off'));
+      const available = state === 'poweredOn';
+      if (that.available == undefined || that.available != available) {
+        that.available = available;
+        if (listener.onAdapterStateChaged) listener.onAdapterStateChaged(available);
       }
     });
   }
 
   reset(peripheral) {
+    this.discoveringServices = false;
     if (!peripheral) return;
     peripheral.dataStreamCharacteristicWrite = undefined;
     peripheral.dataStreamCharacteristicNotify = undefined;
     peripheral.batteryLevelCharacteristic = undefined;
+    if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('disconnected'));
   }
 
   disconnect(address) {
@@ -46,7 +43,7 @@ class CMSNBleAdapter {
     try {
       peripheral.disconnect();
     } catch (error) {
-      CrimsonLogger.w(peripheral.name, 'disconnect error');
+      CrimsonLogger.w(peripheral.name, 'disconnect error', error);
     }
     // if (peripheralMap.has(address)) peripheralMap.delete(address);
   }
@@ -58,23 +55,36 @@ class CMSNBleAdapter {
     }
     peripheralMap.set(peripheral.address, peripheral);
     var name = peripheral.name;
-
     peripheral.removeAllListeners('servicesDiscover');
     peripheral.removeAllListeners('disconnect');
     peripheral.on('disconnect', () => {
-      if (!peripheral) return;
       this.reset(peripheral);
-      if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('disconnected'));
     });
 
-    CrimsonLogger.i('connecting...', address, name);
+    CrimsonLogger.i('cmsn_ble, connecting...', address, name, peripheral.state);
     if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connecting'));
+    if (peripheral.state == 'connected') {
+      this.onConnected(peripheral);
+      return;
+    }
+    const that = this;
     peripheral.connect(async (error) => {
-      if (!peripheral && error) {
-        this.logError(name, 'connect error');
+      if (error) {
+        CrimsonLogger.w(name, 'connect error', error);
+        that.reset(peripheral);
         return;
       }
+      if (peripheral) that.onConnected(peripheral);
+    });
+  }
 
+  async onConnected(peripheral) {
+    const name = peripheral.name;
+    if (this.discoveringServices) {
+        CrimsonLogger.i(name, 'already in discoveringServices');
+        return;
+      }
+      this.discoveringServices = true;
       this.logMessage(name, 'discoverServices...');
       try {
         const services = await this.discoverServices(peripheral);
@@ -87,7 +97,6 @@ class CMSNBleAdapter {
       } catch (error) {
         CrimsonLogger.w('discoverServices error', error);
       }
-    });
   }
 
   discoverServices(peripheral) {
@@ -118,7 +127,7 @@ class CMSNBleAdapter {
         reject(Error(`[${name}], device is not connected`));
         return;
       }
-      this.logMessage(name, '> Service: ' + service.uuid + ' discoverCharacteristics...');
+      // this.logMessage(name, '> Service: ' + service.uuid + ' discoverCharacteristics...');
       try {
         service.discoverCharacteristics(
           [
@@ -195,7 +204,7 @@ class CMSNBleAdapter {
             await this.enableNotification(characteristic, true);
             this.logMessage('data stream notification enabled');
           } catch (error) {
-            this.logError('enabling data stream notification failed', error);
+            CrimsonLogger.w(name, 'enabling data stream notification failed', error);
           }
           break;
 
@@ -205,24 +214,25 @@ class CMSNBleAdapter {
             if (buffer.byteLength > 0) {
               peripheral.batteryLevel = buffer[0];
               this.logMessage(name, '> Battery Level is ' + peripheral.batteryLevel + '%');
+              if (peripheral.onBatteryLevelChanged) peripheral.onBatteryLevelChanged(peripheral.batteryLevel);
             }
           });
           try {
             await this.enableNotification(characteristic, true);
-            this.logMessage('battery level notification enabled');
+            this.logMessage(name, 'battery level notification enabled');
           } catch (error) {
-            this.logError('enabling battery level notification failed', error);
+            CrimsonLogger.w(name, 'enabling battery level notification failed', error);
           }
           characteristic.read(); // read once battery level
           break;
 
         case BLE_UUID.CHARACTERISTIC_UUID_MANUFACTURER_NAME:
           peripheral.manufacturer_name = await this.readCharacteristicString(characteristic);
-          this.logMessage(name, '> manufacturer_name: ' + peripheral.manufacturer_name);
+          // this.logMessage(name, '> manufacturer_name: ' + peripheral.manufacturer_name);
           break;
         case BLE_UUID.CHARACTERISTIC_UUID_MODEL_NUMBER:
           peripheral.model_number = await this.readCharacteristicString(characteristic);
-          this.logMessage(name, '> model_number: ' + peripheral.model_number);
+          // this.logMessage(name, '> model_number: ' + peripheral.model_number);
           break;
         case BLE_UUID.CHARACTERISTIC_UUID_SERIAL_NUMBER:
           peripheral.serial_number = await this.readCharacteristicString(characteristic);
@@ -230,7 +240,7 @@ class CMSNBleAdapter {
           break;
         case BLE_UUID.CHARACTERISTIC_UUID_HARDWARE_REVISION:
           peripheral.hardware_revision = await this.readCharacteristicString(characteristic);
-          this.logMessage(name, '> hardware_revision: ' + peripheral.hardware_revision);
+          // this.logMessage(name, '> hardware_revision: ' + peripheral.hardware_revision);
           break;
         case BLE_UUID.CHARACTERISTIC_UUID_FIRMWARE_REVISION:
           peripheral.firmware_revision = await this.readCharacteristicString(characteristic);
@@ -245,13 +255,13 @@ class CMSNBleAdapter {
   onDataStreamCharacteristicReady(peripheral) {
     if (!peripheral) return;
     if (peripheral.state !== 'connected') {
-      this.logError(peripheral.name, 'device state changed to ' + peripheral.state);
+      CrimsonLogger.w(peripheral.name, 'device state changed to ' + peripheral.state);
       return;
     }
     if (peripheral.dataStreamCharacteristicNotify && peripheral.dataStreamCharacteristicWrite) {
       if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connected'));
     } else {
-      this.logError(
+      CrimsonLogger.w(
         peripheral.name,
         'discoverServices error, cannot get dataStreamCharacteristicNotify or dataStreamCharacteristicWrite'
       );
@@ -268,7 +278,7 @@ class CMSNBleAdapter {
       }
       var name = peripheral.name;
       if (!peripheral.dataStreamCharacteristicWrite) {
-        this.logError(name, 'dataStreamCharacteristicWrite is unavailable');
+        CrimsonLogger.w(name, 'dataStreamCharacteristicWrite is unavailable');
         reject(Error('dataStreamCharacteristicWrite is unavailable'));
         return;
       }

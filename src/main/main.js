@@ -29,16 +29,26 @@ async function createWindow() {
     var cmd = arg.cmd;
     switch (cmd) {
     case 'initSDK':
-      await cmsn.initSDK();
-      event.reply(messageRes, { cmd: 'onInitialized' });
+      await cmsn.initSDK((e) => {
+        if (e && e.message) {
+          console.error(e.message);
+          event.reply(messageRes, { cmd: 'onError', error: e });
+        }
+      }, (adapterAvailable) => {
+        event.reply(messageRes, { cmd: 'onAdapterAvailableChanged', adapterAvailable: adapterAvailable });
+      });
       break;
     case 'disposeSDK':
       await cmsn.disposeSDK();
       break;
     case 'startScan':
+      // await cmsn.connect('cmsn_OK');
+      // await cmsn.connect('58:94:b2:00:02:39');
+      // 58:94:b2:00:a5:7f
+      // break;
       await cmsn.startScan(
-        (scanning) => {
-          event.reply(messageRes, { cmd: 'onScanning', scanning: scanning });
+        (adapterScanning) => {
+          event.reply(messageRes, { cmd: 'onScanning', adapterScanning: adapterScanning });
         },
         (devices) => {
           event.reply(messageRes, {
@@ -60,34 +70,34 @@ async function createWindow() {
       var deviceId = arg.deviceId;
       // eslint-disable-next-line no-case-declarations
       const deviceListener = {
-        onError: (error) => {
+        onError: (_, error) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onError', error: error });
         },
-        onDeviceInfoReady: (deviceInfo) => {
+        onDeviceInfoReady: (_, deviceInfo) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onDeviceInfoReady', deviceInfo: deviceInfo });
         },
-        onConnectivityChanged: (connectivity) => {
+        onConnectivityChanged: (_, connectivity) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onConnectivityChanged', connectivity: connectivity });
         },
-        onContactStateChanged: (contactState) => {
+        onContactStateChanged: (_, contactState) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onContactStateChanged', contactState: contactState });
         },
-        onOrientationChanged: (orientation) => {
+        onOrientationChanged: (_, orientation) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onOrientationChanged', orientation: orientation });
         },
-        onIMUData: (imu) => {
+        onIMUData: (_, imu) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onIMUData', imu: imu });
         },
-        onEEGData: (eeg) => {
+        onEEGData: (_, eeg) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onEEGData', eeg: eeg });
         },
-        onBrainWave: (stats) => {
+        onBrainWave: (_, stats) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onBrainWave', stats: stats });
         },
-        onAttention: (attention) => {
+        onAttention: (_, attention) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onAttention', attention: attention });
         },
-        onMeditation: (meditation) => {
+        onMeditation: (_, meditation) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onMeditation', meditation: meditation });
         },
         onSocialEngagement: (social) => {
@@ -138,15 +148,16 @@ app.whenReady().then(() => {
   });
 
   app.on('will-quit', async function () {
-    // await example_dispose();
+    console.log('will-quit');
   });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', async function () {
   console.log('window-all-closed');
+  await cmsn.disposeSDK();
   if (process.platform !== 'darwin') app.quit();
 });
 

@@ -6,12 +6,10 @@ const { CONNECTIVITY } = require('../main/libcmsn/cmsn_common');
 const messageReq = 'cmsn-request';
 const messageRes = 'cmsn-respnose';
 
-const scanObservable = observable({
-  scanning: false,
-  devices: [],
-});
-
 const cmsnObservable = observable({
+  adapterAvailable: false,
+  adapterScanning: false,
+  scannedDevices: [],
   devices: [],
 });
 
@@ -22,25 +20,31 @@ class CrimsonActions {
   static initSDK() {
     ipcRenderer.on(messageRes, (_, arg) => {
       switch (arg.cmd) {
-      case 'onInitialized':
+      case 'onAdapterAvailableChanged':
         console.log(arg);
-        this._initialized = true;
-        this._autoConnect();
+        runInAction(() => {
+          cmsnObservable.adapterAvailable = arg.adapterAvailable;
+        });
+        if (!this._initialized && arg.adapterAvailable) {
+          this._initialized = true;
+          this._autoConnect();
+        }
         break;
       case 'onScanning':
         console.log(arg);
         runInAction(() => {
-          scanObservable.scanning = arg.scanning;
+          cmsnObservable.adapterScanning = arg.adapterScanning;
         });
         break;
       case 'onFoundDevices':
         console.log(arg);
         runInAction(() => {
-          scanObservable.devices = arg.devices;
+          cmsnObservable.scannedDevices = arg.devices;
         });
         break;
       case 'onError':
         console.log('[onError] deviceId', arg.deviceId, 'error', arg.error);
+        // StateActions.toggleToast(e.message);
         break;
 
         // case 'onDeviceSystemInfo':
@@ -76,7 +80,7 @@ class CrimsonActions {
 
   static _sendCmd(cmd, params) {
     if (!this._initialized && cmd != 'initSDK') {
-      console.log(cmd, 'while Crimson SDK is not initialized');
+      console.log(cmd, 'while CrimsonSDK is not initialized');
       return;
     }
     console.log('[CrimsonActions]', cmd);
@@ -85,20 +89,20 @@ class CrimsonActions {
 
   static startScan() {
     runInAction(() => {
-      scanObservable.devices = [];
+      cmsnObservable.devices = [];
     });
     this._sendCmd('startScan');
   }
 
   static stopScan() {
     runInAction(() => {
-      scanObservable.devices = [];
+      cmsnObservable.devices = [];
     });
     this._sendCmd('stopScan');
   }
 
   static toogleScan() {
-    if (!scanObservable.scanning) {
+    if (!cmsnObservable.scanning) {
       this.startScan();
     } else {
       this.stopScan();
@@ -140,7 +144,7 @@ class CrimsonActions {
   static _notifyUpdateDevices() {
     const devices = Array.from(_cmsnMap.values());
     // console.log('_notifyUpdateDevices', devices);
-    //refresh ui
+    // refresh ui
     runInAction(() => {
       cmsnObservable.devices = devices;
     });
@@ -227,6 +231,9 @@ class CrimsonActions {
 
   static _autoConnect() {
     console.log('loadDeviceRecords');
+    var deviceId = '58:94:b2:00:02:39';
+    deviceId     = '58:94:b2:00:a5:7f';
+    this._sendCmd('connect', { deviceId: deviceId });
     // const devices = deviceStore.get('cmsnRecords');
     // if (Array.isArray(devices) && devices.length > 0) {
     //   console.log('autoConnect');
@@ -244,5 +251,4 @@ class CrimsonActions {
 module.exports = {
   CrimsonActions,
   cmsnObservable,
-  scanObservable,
 };

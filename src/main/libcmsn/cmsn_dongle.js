@@ -4,7 +4,7 @@
 const { AdapterFactory } = require('pc-ble-driver-js');
 const { textDecoder, sleep } = require('./cmsn_utils');
 const DeviceLister = require('cmsn-nrf-device-lister');
-const { CMSNError, BLE_UUID, CONNECTIVITY } = require('./cmsn_common');
+const { BLE_UUID, CONNECTIVITY } = require('./cmsn_common');
 const CrimsonLogger = require('./cmsn_logger');
 
 const peripheralMap = new Map(); // (uuid: string, peripheral)
@@ -49,6 +49,7 @@ class CMSNDongleAdapter {
       lister.on('conflated', async function (cmsnDeviceMap) {
         CrimsonLogger.i('found NordicUsb dongle size:', cmsnDeviceMap.size);
         if (cmsnDeviceMap.size > 0) {
+          var available;
           if (!that.selectedDevice) {
             that.selectedDevice = cmsnDeviceMap.values().next().value;
             CrimsonLogger.i(that.selectedDevice);
@@ -57,16 +58,18 @@ class CMSNDongleAdapter {
             that.setupAdapterListeners();
             await that.openAdapter();
             CrimsonLogger.i('Opened adapter.');
-            that.available = true;
-            if (listener.onAdapterAvailable) listener.onAdapterAvailable();
+            available = true;
           }
         } else {
           if (that.selectedDevice) {
             that.selectedDevice = null;
             that.adapter = null;
-            that.available = false;
-            if (listener.onError) listener.onError(CMSNError.enum('dongle_unavailable'));
+            available = false;
           }
+        }
+        if (that.available == undefined || that.available != available) {
+          that.available = available;
+          if (listener.onAdapterStateChaged) listener.onAdapterStateChaged(available);
         }
       });
       CrimsonLogger.i('Start discovering NordicUsb dongle...');
@@ -259,6 +262,7 @@ class CMSNDongleAdapter {
         const batteryLevel = characteristic.value[0];
         CrimsonLogger.i(peripheral.address, `> Battery Level: ${batteryLevel}.`);
         peripheral.batteryLevel = batteryLevel;
+        if (peripheral.onBatteryLevelChanged) peripheral.onBatteryLevelChanged(peripheral.batteryLevel);
       }
     });
   }
@@ -305,7 +309,7 @@ class CMSNDongleAdapter {
         this.onDeviceDisconnected(peripheral);
       } else {
         this.adapter.disconnect(peripheral.deviceInstanceId, (error) => {
-          if (error) CrimsonLogger.e(peripheral.name, 'disconnect error');
+          if (error) CrimsonLogger.e(peripheral.name, 'disconnect error', error);
         });
       }
     }

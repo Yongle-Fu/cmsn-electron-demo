@@ -67,6 +67,7 @@ class CrimsonSDK extends EventEmitter {
   static async init(useDongle, logLevel) {
     if (cmsnSDK) return;
     cmsnSDK = new CrimsonSDK();
+    cmsnSDK.useDongle = useDongle;
 
     if (libcmsn) return;
     libcmsn = await loadWasm({
@@ -275,9 +276,9 @@ class CrimsonSDK extends EventEmitter {
           CrimsonLogger.e('[CMSN ERROR]:', error);
           that.emit('error', error);
         },
-        onAdapterAvailable: function () {
-          CrimsonLogger.i('onAdapterAvailable');
-          that.emit('onAdapterAvailable');
+        onAdapterStateChaged: function (available) {
+          CrimsonLogger.i('onAdapterStateChaged', available);
+          that.emit('onAdapterStateChaged', available);
         },
       });
     } catch (error) {
@@ -293,9 +294,14 @@ class CrimsonSDK extends EventEmitter {
       return;
     }
 
+    const adapter = cmsnSDK.adapter;
+    if (!adapter.available) {
+      this.emitError(this.useDongle == true ? CMSNError.enum('dongle_unavailable') : CMSNError.enum('ble_power_off'));
+      return;
+    }
+
     try {
       CrimsonLogger.i('start scanning...');
-      const adapter = cmsnSDK.adapter;
       await adapter.startScan((p) => {
         if (this.scanning) cb(new CMSNDevice(p));
       });
@@ -328,8 +334,9 @@ class CrimsonSDK extends EventEmitter {
 
 const availableCallbacks = {
   onError: '(CMSNDevice, Error)=>Void',
-  onConnectivityChanged: '(CMSNDevice, Connectivity)=>Void',
   onDeviceInfoReady: '(CMSNDevice, DeviceInfo)=>Void',
+  onBatteryLevelChanged: '(CMSNDevice, int)=>Void',
+  onConnectivityChanged: '(CMSNDevice, Connectivity)=>Void',
   onContactStateChanged: '(CMSNDevice, ContactState)=>Void',
   onOrientationChanged: '(CMSNDevice, Orientation)=>Void',
   onIMUData: '(CMSNDevice, IMUData)=>Void',
@@ -385,6 +392,7 @@ class CMSNDevice {
     return this._connectivity;
   }
   set connectivity(connectivity) {
+    if (this._connectivity == connectivity) return;
     this._connectivity = connectivity;
     this.logMessage('> connectivity:' + connectivity);
     this.paired = false;
@@ -444,12 +452,17 @@ class CMSNDevice {
     if (error && this.listener && this.listener.onError) this.listener.onError(this, error);
   }
 
-  disconnect() {
+  disconnect(remove = true) {
+    if (!cmsnSDK.adapter || !cmsnSDK.adapter.available) {
+      CrimsonLogger.i('cmsnSDK.adapter', cmsnSDK.adapter);
+      if (!this.isDisconnected) this.connectivity = CONNECTIVITY.enum('disconnected');
+      return;
+    }
     this.logMessage(`disconnect...`);
     if (this.peripheral) this.peripheral.onReceiveData = null;
     var id = this.id;
     cmsnSDK.adapter.disconnect(id);
-    if (cmsnDeviceMap.has(id)) cmsnDeviceMap.delete(id);
+    if (remove && cmsnDeviceMap.has(id)) cmsnDeviceMap.delete(id);
   }
 
   connect() {
@@ -464,6 +477,10 @@ class CMSNDevice {
       this.peripheral.onConnectivityChanged = (connectivity) => {
         that.connectivity = connectivity;
       };
+      this.peripheral.onBatteryLevelChanged = (batteryLevel) => {
+        if (that.listener.onBatteryLevelChanged) that.listener.onBatteryLevelChanged(that, batteryLevel);
+      };
+      this.peripheral.onBatteryLevelChanged(this.batteryLevel);
     }
 
     cmsnDeviceMap.set(this.id, this);

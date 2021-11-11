@@ -15,7 +15,7 @@
 const ReactDOM = require('react-dom');
 const React = require('react');
 const { observer } = require('mobx-react');
-const { scanObservable, cmsnObservable, CrimsonActions } = require('./CrimsonActions');
+const { cmsnObservable, CrimsonActions } = require('./CrimsonActions');
 const { ScanButton, ScanDeviceList } = require('./ScanDeviceWidget');
 const { CrimsonDeviceList } = require('./CrimsonDeviceWidget');
 
@@ -39,15 +39,19 @@ const App = observer(
     }
 
     render() {
-      var scanning = this.props.scanObservable.scanning;
-      var operationDevices = this.props.cmsnObservable.devices;
-      // console.log(operationDevices.length);
+      const cmsn = this.props.cmsnObservable;
+      if (!cmsn.adapterAvailable) {
+        return (<div>
+          <p />
+          蓝牙连接不可用
+        </div>);
+      }
       var devicesList =
-        operationDevices.length > 0 ? (
+        cmsn.devices.length > 0 ? (
           <div>
             <p />
             连接中/已连接设备列表
-            <CrimsonDeviceList devices={operationDevices} />
+            <CrimsonDeviceList devices={cmsn.devices} />
           </div>
         ) : null;
       // var debugBtn = isDevelopment ? (
@@ -55,13 +59,12 @@ const App = observer(
       // ) : null;
       return (
         <div>
-          {/* {debugBtn} */}
           <button onClick={() => CrimsonActions.disconnectAll()}>disconnectAll</button>
           <p />
-          <ScanButton scanning={scanning} />
+          <ScanButton scanning={cmsn.adapterScanning} />
           <p />
           扫描到的设备列表
-          <ScanDeviceList devices={this.props.scanObservable.devices} />
+          <ScanDeviceList devices={cmsn.scannedDevices} />
           {devicesList}
         </div>
       );
@@ -71,4 +74,4 @@ const App = observer(
 
 const app = document.createElement('div');
 document.body.appendChild(app);
-ReactDOM.render(<App cmsnObservable={cmsnObservable} scanObservable={scanObservable} />, app);
+ReactDOM.render(<App cmsnObservable={cmsnObservable}/>, app);

@@ -223,6 +223,30 @@ function createEnum(input, type = String) {
   return FN;
 }
 
+function getErrorMessage(error, name) {
+  switch (error) {
+    case CMSNError.enum('ble_power_off'):
+      // return 'Bluetooth is unavailable, please check the radio is opened';
+      return '蓝牙不可用，请检查蓝牙是否开启';
+    case CMSNError.enum('dongle_unavailable'):
+      // return 'nRF Dongle is unavailable, please check';
+      return  '蓝牙串口设备不可用，请检查设备是否连接良好';
+    case CMSNError.enum('scan_error'):
+      // return 'Start scanning error';
+      return '开启扫描失败';
+    case CMSNError.enum('pair_failed'):
+      // return 'please try again.';
+      return '配对失败，请稍候重试';
+    case CMSNError.enum('validate_info_failed'):
+      // return 'please switch to pairing mode then connect again.';
+      if (!name) name = '';
+      return `请将设备${name}调整至配对模式。`;
+    default:
+      // return 'unknown error';
+      return '未知错误';
+  }
+}
+
 module.exports = {
   BLE_UUID,
   CMSNLogLevel,
@@ -234,4 +258,5 @@ module.exports = {
   AFE,
   IMU,
   ACC,
+  getErrorMessage,
 };

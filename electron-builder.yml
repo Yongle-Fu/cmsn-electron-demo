@@ -70,7 +70,7 @@ nsis:
   oneClick: true
   allowElevation: true
   perMachine: true
-  allowToChangeInstallationDirectory: true
+  allowToChangeInstallationDirectory: false
   runAfterFinish: true
   menuCategory: 'CrimsonMenu'
   # include: "resources/installer.nsh"

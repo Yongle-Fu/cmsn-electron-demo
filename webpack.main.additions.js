@@ -2,6 +2,13 @@
 // const CopyWebpackPlugin = require('copy-webpack-plugin');
 // const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
+module.exports = {
+  resolve: {
+    symlinks: false,
+  }
+}
+
+
 // module.exports = {
 //   // mode: 'development',
 //   // mode: 'production',

@@ -100,14 +100,14 @@ async function createWindow() {
         onMeditation: (_, meditation) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onMeditation', meditation: meditation });
         },
-        onSocialEngagement: (social) => {
+        onSocialEngagement: (_, social) => {
           event.reply(messageRes, { deviceId: deviceId, cmd: 'onSocialEngagement', social: social });
         },
       };
       await cmsn.connect(deviceId, deviceListener);
       break;
     case 'disconnect':
-      await cmsn.disconnect(deviceId);
+      await cmsn.disconnect(arg.deviceId);
       break;
     case 'disconnectAll':
       await cmsn.disconnectAll();

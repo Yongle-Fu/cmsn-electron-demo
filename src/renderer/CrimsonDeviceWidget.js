@@ -7,9 +7,6 @@ export function CrimsonDeviceList(props) {
 }
 
 class CrimsonDeviceWidget extends React.Component {
-  constructor() {
-    super();
-  }
   render() {
     var device = this.props.device;
     return (
@@ -37,6 +34,6 @@ class CrimsonDeviceWidget extends React.Component {
 
   _safeFloat(value) {
     if (!value) return null;
-    return value.toFixed(1);
+    return value;
   }
 }

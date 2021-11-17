@@ -89,15 +89,12 @@ class CrimsonActions {
 
   static startScan() {
     runInAction(() => {
-      cmsnObservable.devices = [];
+      cmsnObservable.scannedDevices = [];
     });
     this._sendCmd('startScan');
   }
 
   static stopScan() {
-    runInAction(() => {
-      cmsnObservable.devices = [];
-    });
     this._sendCmd('stopScan');
   }
 
@@ -114,9 +111,11 @@ class CrimsonActions {
     var deviceId = device.id;
     if (!deviceId) return;
 
+    runInAction(() => {
+      cmsnObservable.scannedDevices = [];
+    });
     _cmsnMap.set(deviceId, { id: deviceId, name: device.name });
     this._sendCmd('connect', { deviceId: deviceId });
-    // this._sendCmd('stopScan', { deviceId: deviceId }); //for debug
     this._notifyUpdateDevices();
   }
 
@@ -195,15 +194,16 @@ class CrimsonActions {
       break;
     case 'onAttention':
       console.log(arg);
-      device.attention = arg.attention;
+      device.attention = arg.attention.toFixed(1);
       this._notifyUpdateDevices();
       break;
     case 'onMeditation':
-      device.meditation = arg.meditation;
+      device.meditation = arg.meditation.toFixed(1);
       this._notifyUpdateDevices();
       break;
     case 'onSocialEngagement':
-      device.social = arg.social;
+      console.log(arg);
+      device.social = arg.social.toFixed(1);
       this._notifyUpdateDevices();
       break;
     case 'onEEGData':
@@ -231,9 +231,9 @@ class CrimsonActions {
 
   static _autoConnect() {
     console.log('loadDeviceRecords');
-    var deviceId = '58:94:b2:00:02:39';
-    deviceId     = '58:94:b2:00:a5:7f';
-    this._sendCmd('connect', { deviceId: deviceId });
+    // var deviceId = '58:94:b2:00:02:39';
+    // deviceId     = '58:94:b2:00:a5:7f';
+    // this._sendCmd('connect', { deviceId: deviceId });
     // const devices = deviceStore.get('cmsnRecords');
     // if (Array.isArray(devices) && devices.length > 0) {
     //   console.log('autoConnect');

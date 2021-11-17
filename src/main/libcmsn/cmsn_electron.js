@@ -7,19 +7,17 @@ const { CONNECTIVITY, CONTACT_STATE, ORIENTATION, CMSNLogLevel, IMU, CMSNError, 
 
 async function _runErrorCB(error) {
   if (!error) return;
-  var message = getErrorMessage(error);
-  console.error('_runErrorCB', error, message);
+  console.error('_runErrorCB', error);
   if (_onErrorCb) {
-    _onErrorCb({ code: error, message: message });
+    _onErrorCb({ code: error, message: getErrorMessage(error) });
   }
 }
 
 function _runDeviceErrorCB(device, error) {
   if (!error) return;
-  var message = getErrorMessage(error, device.name);
-  console.error('_runDeviceErrorCB', device.name, message);
+  console.error('_runDeviceErrorCB', device.name, error);
   if (device.delegate && device.delegate.onError) {
-    device.delegate.onError({ code: error, message: message });
+    device.delegate.onError({ code: error, message: getErrorMessage(error, device.name) });
   }
 }
 
@@ -138,15 +136,15 @@ const initSDK = async (onError, onAdapterStateChaged) => {
   _cmsnSDK.on('error', (e) => _runErrorCB(e));
   _cmsnSDK.on('onAdapterStateChaged', async (available) => {
     adapterAvailable = available;
-    var message;
     if (available) {
-      message = _useDongle ? 'nRF Dongle is available now' : 'ble adapter is available now';
-      message = _useDongle ? '蓝牙串口设备已连接' : '蓝牙已开启';
-      console.log({ msg: message });
       if (cmsnDeviceMap.size > 0) _startReconnectTimer();
-      setTimeout(async () => {
+      if (utils.isWin64()) {
+        setTimeout(async () => {
+          await _doScan();
+        }, 500);
+      } else {
         await _doScan();
-      }, 500);
+      }
     } else {
       _runErrorCB(_useDongle ? CMSNError.enum('dongle_unavailable') : CMSNError.enum('ble_power_off'));
       await stopScan();
@@ -284,14 +282,15 @@ async function connect(deviceId, delegate) {
 }
 
 const disconnect = async (deviceId, cb) => {
+  console.log(`[CMSN], disconnect`, deviceId);
   setEnableReconnect(false);
-  await stopScan();
   if (_targetDeviceId == deviceId) _targetDeviceId = null;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) {
-    if (utils.isWin64()) device.shutdown(); // Windows下断开连接不及时，故直接发送关机指令
+    // if (utils.isWin64()) device.shutdown(); // Windows下断开连接不及时，故直接发送关机指令
     await device.disconnect();
   }
+  await stopScan();
   if (cb) cb();
 };
 

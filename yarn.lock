@@ -2839,10 +2839,10 @@ cmsn-bluetooth-hci-socket@0.6.2:
   optionalDependencies:
     usb "^1.6.3"
 
-cmsn-noble@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/cmsn-noble/-/cmsn-noble-0.4.0.tgz#ba4429e96bc6e34dab9a7a06ab33eb54c01ddcf2"
-  integrity sha512-AjdGjfmbyoU2/khVbjvJ6tbqne/7vAK1gqlQIBROMy9gahTHWpe7KUdJCYDa23RDiz55q6Ba6N3z2QcZX2VP5w==
+cmsn-noble@3.1.6:
+  version "3.1.6"
+  resolved "https://registry.npmmirror.com/cmsn-noble/download/cmsn-noble-3.1.6.tgz#f13b2a3c65dd481ca71beb00d46946f01d510ebf"
+  integrity sha512-uoUL2s4hua3fci5Cq3Z2cF65346T6YLqVJEMaiHCpMnyxTGDW2XBzEU6ZzEOZWSIRoSXWsRLd6FRH2iLI5BWsw==
   dependencies:
     bindings "^1.5.0"
     debug "^4.3.2"

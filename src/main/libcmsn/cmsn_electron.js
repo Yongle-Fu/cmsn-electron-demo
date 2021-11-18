@@ -138,13 +138,6 @@ const initSDK = async (onError, onAdapterStateChaged) => {
     adapterAvailable = available;
     if (available) {
       if (cmsnDeviceMap.size > 0) _startReconnectTimer();
-      if (utils.isWin64()) {
-        setTimeout(async () => {
-          await _doScan();
-        }, 500);
-      } else {
-        await _doScan();
-      }
     } else {
       _runErrorCB(_useDongle ? CMSNError.enum('dongle_unavailable') : CMSNError.enum('ble_power_off'));
       await stopScan();
@@ -244,7 +237,7 @@ async function _doScan() {
 }
 
 /// Default: _subscription attention data stream only
-const _subscription = { attention: false, meditation: false, socialEngagement: true };
+const _subscription = { attention: true, meditation: true, socialEngagement: false };
 async function _onFoundTargetDevice(device) {
   if (_cmsnSDK.scanning) await stopScan();
 

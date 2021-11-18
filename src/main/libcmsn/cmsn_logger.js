@@ -5,6 +5,10 @@ const d = log.extend('debug');
 const i = log.extend('info');
 const w = log.extend('warn');
 const e = log.extend('error');
+// const d = console.debug;
+// const i = console.info;
+// const w = console.warn;
+// const e = console.error;
 
 // const isDevelopment = process.env.NODE_ENV !== 'production';
 // const shouldLogging = !isDevelopment;

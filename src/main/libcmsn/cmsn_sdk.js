@@ -276,9 +276,9 @@ class CrimsonSDK extends EventEmitter {
           CrimsonLogger.e('[CMSN ERROR]:', error);
           that.emit('error', error);
         },
-        onAdapterStateChaged: function (available) {
-          CrimsonLogger.i('onAdapterStateChaged', available);
-          that.emit('onAdapterStateChaged', available);
+        onAdapterStateChanged: function (available) {
+          CrimsonLogger.i('onAdapterStateChanged', available);
+          that.emit('onAdapterStateChanged', available);
         },
       });
     } catch (error) {
@@ -737,13 +737,13 @@ class CMSNDevice {
       this.logWarn(`Device is not paired.`);
       return;
     }
-    const idelTimeSecs = parseInt(secs);
-    if (idelTimeSecs < 0 || idelTimeSecs > 1000) {
+    const idleTimeSecs = parseInt(secs);
+    if (idleTimeSecs < 0 || idleTimeSecs > 1000) {
       this.onError('Invalid idle time input, idle time should be a int value with in (0~1000)');
       return;
     }
     var msgId = libcmsn.cmsn_gen_msg_id();
-    var data = libcmsn.cmsn_set_sleep_pack(msgId, idelTimeSecs);
+    var data = libcmsn.cmsn_set_sleep_pack(msgId, idleTimeSecs);
     await this.writeData(data);
     if (cb) msgCallbackMap.set(msgId, cb);
   }

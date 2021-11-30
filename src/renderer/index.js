@@ -54,9 +54,6 @@ const App = observer(
             <CrimsonDeviceList devices={cmsn.devices} />
           </div>
         ) : null;
-      // var debugBtn = isDevelopment ? (
-      //   <button onClick={() => CrimsonActions.disconnectAll()}>disconnectAll</button>
-      // ) : null;
       return (
         <div>
           <button onClick={() => CrimsonActions.disconnectAll()}>disconnectAll</button>

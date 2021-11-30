@@ -4,7 +4,7 @@ const { observable, runInAction } = require('mobx');
 const { CONNECTIVITY } = require('../main/libcmsn/cmsn_common');
 
 const messageReq = 'cmsn-request';
-const messageRes = 'cmsn-respnose';
+const messageRes = 'cmsn-response';
 
 const cmsnObservable = observable({
   adapterAvailable: false,
@@ -98,7 +98,7 @@ class CrimsonActions {
     this._sendCmd('stopScan');
   }
 
-  static toogleScan() {
+  static toggleScan() {
     if (!cmsnObservable.scanning) {
       this.startScan();
     } else {
@@ -111,9 +111,9 @@ class CrimsonActions {
     var deviceId = device.id;
     if (!deviceId) return;
 
-    runInAction(() => {
-      cmsnObservable.scannedDevices = [];
-    });
+    // runInAction(() => {
+    //   cmsnObservable.scannedDevices = [];
+    // });
     _cmsnMap.set(deviceId, { id: deviceId, name: device.name });
     this._sendCmd('connect', { deviceId: deviceId });
     this._notifyUpdateDevices();

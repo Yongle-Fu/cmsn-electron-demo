@@ -5,7 +5,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const cmsn = require('./libcmsn/cmsn_electron');
 
 const messageReq = 'cmsn-request';
-const messageRes = 'cmsn-respnose';
+const messageRes = 'cmsn-response';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -35,6 +35,7 @@ async function createWindow() {
           event.reply(messageRes, { cmd: 'onError', error: e });
         }
       }, (adapterAvailable) => {
+        console.log('adapterAvailable >>>', adapterAvailable);
         event.reply(messageRes, { cmd: 'onAdapterAvailableChanged', adapterAvailable: adapterAvailable });
       });
       break;

@@ -69,7 +69,7 @@ class CMSNDongleAdapter {
         }
         if (that.available == undefined || that.available != available) {
           that.available = available;
-          if (listener.onAdapterStateChaged) listener.onAdapterStateChaged(available);
+          if (listener.onAdapterStateChanged) listener.onAdapterStateChanged(available);
         }
       });
       CrimsonLogger.i('Start discovering NordicUsb dongle...');
@@ -144,10 +144,10 @@ class CMSNDongleAdapter {
         //     peripheral.batteryLevel = 66;
         //     peripheral.isInPairingMode = true;
         //     CrimsonLogger.i(`Discovered [${peripheral.name}] address=${peripheral.address} rssi=${peripheral.rssi}`);
-        //     if (CMSNDongleAdapter.onFoundDevcie) CMSNDongleAdapter.onFoundDevcie(peripheral);
+        //     if (CMSNDongleAdapter.onFoundDevice) CMSNDongleAdapter.onFoundDevice(peripheral);
         //     return;
         // }
-        if (!CMSNDongleAdapter.onFoundDevcie) return;
+        if (!CMSNDongleAdapter.onFoundDevice) return;
 
         const manufacturerData = peripheral.adData.BLE_GAP_AD_TYPE_MANUFACTURER_SPECIFIC_DATA;
         // NOTE: scan filter by serviceUuids can't works, so use scan filter by manufacturerData 0x5242 instead.
@@ -169,7 +169,7 @@ class CMSNDongleAdapter {
           CrimsonLogger.i(
             `Discovered [${peripheral.name}] address=${peripheral.address} rssi=${peripheral.rssi} batteryLevel=${peripheral.batteryLevel} isInPairingMode=${peripheral.isInPairingMode}`
           );
-          if (CMSNDongleAdapter.onFoundDevcie) CMSNDongleAdapter.onFoundDevcie(peripheral);
+          if (CMSNDongleAdapter.onFoundDevice) CMSNDongleAdapter.onFoundDevice(peripheral);
         }
       }
     });
@@ -180,7 +180,7 @@ class CMSNDongleAdapter {
         if (error) {
           CrimsonLogger.i(device.address, `attMtuReply failed, error=${JSON.stringify(error)}`);
         } else {
-          CrimsonLogger.i(device.address, `attMtuReply sucees`);
+          CrimsonLogger.i(device.address, `attMtuReply success`);
           await sleep(500); //wait data length request update
           await this.onDeviceConnected(device);
         }
@@ -247,7 +247,7 @@ class CMSNDongleAdapter {
         const device = adapter._getDeviceByCharacteristicId(characteristic.instanceId);
         const peripheral = peripheralMap.get(device.address);
         if (!peripheral) {
-          CrimsonLogger.w(`[${device.address}] device unavaliable when received data`);
+          CrimsonLogger.w(`[${device.address}] device unavailable when received data`);
           return;
         }
         const data = Uint8Array.from(characteristic.value);
@@ -256,7 +256,7 @@ class CMSNDongleAdapter {
         const device = adapter._getDeviceByCharacteristicId(characteristic.instanceId);
         const peripheral = peripheralMap.get(device.address);
         if (!peripheral) {
-          CrimsonLogger.w(`[${device.address}] device unavaliable when received battery level changed`);
+          CrimsonLogger.w(`[${device.address}] device unavailable when received battery level changed`);
           return;
         }
         const batteryLevel = characteristic.value[0];
@@ -275,10 +275,10 @@ class CMSNDongleAdapter {
         return;
       }
       const scanParameters = { active: true, interval: 100, window: 50, timeout: 0 };
-      CMSNDongleAdapter.onFoundDevcie = cb;
+      CMSNDongleAdapter.onFoundDevice = cb;
       this.adapter.startScan(scanParameters, (error) => {
         if (error) {
-          CMSNDongleAdapter.onFoundDevcie = null;
+          CMSNDongleAdapter.onFoundDevice = null;
           reject(Error(`start scanning failed, error: ${error}`));
         } else {
           resolve();
@@ -353,7 +353,7 @@ class CMSNDongleAdapter {
   async onDeviceDisconnected(device) {
     const peripheral = peripheralMap.get(device.address);
     if (!peripheral) {
-      CrimsonLogger.w(`[${device.address}]`, `device unavaliable when onDeviceDisconnected`);
+      CrimsonLogger.w(`[${device.address}]`, `device unavailable when onDeviceDisconnected`);
       return;
     }
     peripheral.batteryLevelCharacteristic = null;
@@ -456,7 +456,7 @@ class CMSNDongleAdapter {
         }
       }
       if (peripheral.dataStreamCharacteristicNotify && peripheral.dataStreamCharacteristicWrite) {
-        CrimsonLogger.i(peripheral.name, `device reday`);
+        CrimsonLogger.i(peripheral.name, `device ready`);
         if (peripheral.onConnectivityChanged) peripheral.onConnectivityChanged(CONNECTIVITY.enum('connected'));
       } else {
         CrimsonLogger.e(

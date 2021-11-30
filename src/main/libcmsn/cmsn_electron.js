@@ -126,7 +126,7 @@ let _cmsnSDK;
 let _onErrorCb;
 let adapterAvailable = false;
 
-const initSDK = async (onError, onAdapterStateChaged) => {
+const initSDK = async (onError, onAdapterStateChanged) => {
   if (_cmsnSDK) return;
   console.log('CrimsonSDK.init');
   _onErrorCb = onError;
@@ -134,7 +134,7 @@ const initSDK = async (onError, onAdapterStateChaged) => {
   // eslint-disable-next-line require-atomic-updates
   _cmsnSDK = await CrimsonSDK.init(_useDongle, CMSNLogLevel.enum('info')); //info/error/warn
   _cmsnSDK.on('error', (e) => _runErrorCB(e));
-  _cmsnSDK.on('onAdapterStateChaged', async (available) => {
+  _cmsnSDK.on('onAdapterStateChanged', async (available) => {
     adapterAvailable = available;
     if (available) {
       if (cmsnDeviceMap.size > 0) _startReconnectTimer();
@@ -144,7 +144,7 @@ const initSDK = async (onError, onAdapterStateChaged) => {
       //NOTE: 在cmsnDeviceMap中保留，不删除，用于设备重连
       cmsnDeviceMap.forEach(device => device.disconnect(false));
     }
-    if (onAdapterStateChaged) onAdapterStateChaged(available);
+    if (onAdapterStateChanged) onAdapterStateChanged(available);
   });
   if (_cmsnSDK.adapter.available) await _doScan();
   console.log('CrimsonSDK.init done');
@@ -216,7 +216,7 @@ async function _doScan() {
   if (_onScanning) _onScanning(true);
   _scannedDeviceMap.clear();
   await _cmsnSDK.startScan(async (device) => {
-    CrimsonLogger.i('[CMSN] found device', device.id, device && device.name);
+    // CrimsonLogger.i('[CMSN] found device', device.id, device && device.name);
     _scannedDeviceMap.set(device.id, device);
 
     if (_targetDeviceId && _targetDeviceId == device.id) {
@@ -229,7 +229,7 @@ async function _doScan() {
     _scanTimer = setInterval(() => {
       const curTimestamp = new Date().getTime();
       const devices = Array.from(_scannedDeviceMap.values()).filter((e) => curTimestamp - e.timestamp <= 30000);
-      CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
+      // CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
       CrimsonLogger.d(devices.map((e) => e.description));
       if (_onFoundDevices) _onFoundDevices(devices);
     }, 1000); //invoked per second
@@ -239,7 +239,7 @@ async function _doScan() {
 /// Default: _subscription attention data stream only
 const _subscription = { attention: true, meditation: true, socialEngagement: false };
 async function _onFoundTargetDevice(device) {
-  if (_cmsnSDK.scanning) await stopScan();
+  // if (_cmsnSDK.scanning) await stopScan();
 
   device.delegate = _targetDeviceDelegate;
   device.listener = _deviceListener;
@@ -351,7 +351,7 @@ function _stopReconnectTimer() {
   if (_reconnectTimer) {
     clearInterval(_reconnectTimer);
     _reconnectTimer = null;
-    CrimsonLogger.i('reconnect timer stoped');
+    CrimsonLogger.i('reconnect timer stopped');
   }
 }
 

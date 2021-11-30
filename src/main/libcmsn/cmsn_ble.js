@@ -20,7 +20,7 @@ class CMSNBleAdapter {
       const available = state === 'poweredOn';
       if (that.available == undefined || that.available != available) {
         that.available = available;
-        if (listener.onAdapterStateChaged) listener.onAdapterStateChaged(available);
+        if (listener.onAdapterStateChanged) listener.onAdapterStateChanged(available);
       }
     });
   }
@@ -37,7 +37,7 @@ class CMSNBleAdapter {
   disconnect(address) {
     const peripheral = peripheralMap.get(address);
     if (!peripheral) {
-      CrimsonLogger.w(address, `device unavaliable when disconnect`);
+      CrimsonLogger.w(address, `device unavailable when disconnect`);
       return;
     }
     try {
@@ -58,6 +58,7 @@ class CMSNBleAdapter {
     peripheral.removeAllListeners('servicesDiscover');
     peripheral.removeAllListeners('disconnect');
     peripheral.on('disconnect', () => {
+      CrimsonLogger.i(name, 'on peripheral peripheral');
       this.reset(peripheral);
     });
 
@@ -272,8 +273,8 @@ class CMSNBleAdapter {
     return new Promise((resolve, reject) => {
       const peripheral = peripheralMap.get(address);
       if (!peripheral) {
-        CrimsonLogger.w(address, `device unavaliable when writeData`);
-        reject(Error('device unavaliable when writeData'));
+        CrimsonLogger.w(address, `device unavailable when writeData`);
+        reject(Error('device unavailable when writeData'));
         return;
       }
       var name = peripheral.name;
@@ -301,6 +302,7 @@ class CMSNBleAdapter {
         return;
       }
       node_ble.once('stateChange', (state) => {
+        CrimsonLogger.i('stateChange', state);
         if (state === 'poweredOn') {
           this._startScan(cb, resolve, reject);
         } else {
@@ -313,8 +315,10 @@ class CMSNBleAdapter {
   _startScan(cb, resolve, reject) {
     try {
       // NOTE: scan filter by serviceUuids can't works on Windows, so use scan filter by manufacturerData 0x5242 instead.
+      CrimsonLogger.i('_startScan 0');
       node_ble.startScanning([], true); //allowDuplicates
-      CMSNBleAdapter.onFoundDevcie = cb;
+      CrimsonLogger.i('_startScan 1');
+      CMSNBleAdapter.onFoundDevice = cb;
       this.onStartScan();
       resolve();
     } catch (error) {
@@ -343,8 +347,8 @@ class CMSNBleAdapter {
         p.name = p.advertisement.localName;
         p.batteryLevel = 66;
         p.isInPairingMode = true;
-        CrimsonLogger.i(`Discovered [${p.name}] addressType=${p.addressType} address=${p.address} rssi=${p.rssi}`);
-        if (CMSNBleAdapter.onFoundDevcie) CMSNBleAdapter.onFoundDevcie(p);
+        // CrimsonLogger.i(`Discovered [${p.name}] addressType=${p.addressType} address=${p.address} rssi=${p.rssi}`);
+        if (CMSNBleAdapter.onFoundDevice) CMSNBleAdapter.onFoundDevice(p);
         return;
       }
 
@@ -364,10 +368,10 @@ class CMSNBleAdapter {
             }
           */
 
-          CrimsonLogger.d(
-            `Discovered [${p.name}] addressType=${p.addressType} address=${p.address} rssi=${p.rssi} batteryLevel=${p.batteryLevel} isInPairingMode=${p.isInPairingMode}`
-          );
-          if (CMSNBleAdapter.onFoundDevcie) CMSNBleAdapter.onFoundDevcie(p);
+          // CrimsonLogger.d(
+          //   `Discovered [${p.name}] addressType=${p.addressType} address=${p.address} rssi=${p.rssi} batteryLevel=${p.batteryLevel} isInPairingMode=${p.isInPairingMode}`
+          // );
+          if (CMSNBleAdapter.onFoundDevice) CMSNBleAdapter.onFoundDevice(p);
         }
       }
     });

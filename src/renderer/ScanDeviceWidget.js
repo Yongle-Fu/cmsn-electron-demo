@@ -6,7 +6,7 @@ export function ScanDeviceList(props) {
 }
 
 export function ScanButton(props) {
-  return <button onClick={() => CrimsonActions.toogleScan()}>{props.scanning ? 'stopScan' : 'startScan'}</button>;
+  return <button onClick={() => CrimsonActions.toggleScan()}>{props.scanning ? 'stopScan' : 'startScan'}</button>;
 }
 
 class ScanDeviceWidget extends React.Component {

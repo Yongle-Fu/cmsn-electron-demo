@@ -4,7 +4,7 @@
 const loadWasm = require('./cmsn');
 const { hexToRGB, sleep } = require('./cmsn_utils');
 const EventEmitter = require('events');
-const { CMSNDongleAdapter } = require('./cmsn_dongle');
+// const { CMSNDongleAdapter } = require('./cmsn_dongle');
 const { CMSNBleAdapter } = require('./cmsn_ble');
 const { CMD, CONNECTIVITY, CONTACT_STATE, AFE, IMU, CMSNError, CMSNLogLevel } = require('./cmsn_common');
 const CrimsonLogger = require('./cmsn_logger');
@@ -265,7 +265,7 @@ class CrimsonSDK extends EventEmitter {
     CrimsonLogger.i('useDongle', useDongle);
     var adapter;
     if (useDongle) {
-      adapter = new CMSNDongleAdapter();
+      // adapter = new CMSNDongleAdapter();
     } else {
       adapter = new CMSNBleAdapter();
     }

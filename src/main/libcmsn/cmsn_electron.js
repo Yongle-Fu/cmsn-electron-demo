@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable indent */
-const utils = require('./cmsn_utils');
 const CrimsonLogger = require('./cmsn_logger');
 const { CrimsonSDK, CMSNDeviceListener, cmsnDeviceMap } = require('./cmsn_sdk');
 const { CONNECTIVITY, CONTACT_STATE, ORIENTATION, CMSNLogLevel, IMU, CMSNError, getErrorMessage } = require('./cmsn_common');
@@ -21,6 +19,29 @@ function _runDeviceErrorCB(device, error) {
   }
 }
 
+function _pairDevice(device) {
+  if (device.isConnected) {
+    if (device.delegate && device.delegate.onConnectivityChanged) {
+      device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connecting'));
+    }
+    device.pair(async (success, error) => {
+      if (success) {
+        CrimsonLogger.i({ msg: `[${device.name}] pair success` });
+        device.isInPairingMode = false;
+        if (device.delegate && device.delegate.onConnectivityChanged) {
+          device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connected'));
+        }
+        device.startDataStream(async (success, error) => {
+          if (success) {
+            console.log(device.name, 'EEG data stream started.');
+            device.getLeadOffStatus();
+          } else _runDeviceErrorCB(device, error);
+        });
+      } else _runDeviceErrorCB(device, error);
+    });
+  }
+}
+
 const _deviceListener = new CMSNDeviceListener({
   onError: (device, error) => _runDeviceErrorCB(device, error),
   onDeviceInfoReady: (device, deviceInfo) => {
@@ -36,24 +57,7 @@ const _deviceListener = new CMSNDeviceListener({
     _startReconnectTimer();
 
     if (device.isConnected) {
-      if (device.delegate && device.delegate.onConnectivityChanged) {
-        device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connecting'));
-      }
-      device.pair(async (success, error) => {
-        if (success) {
-          CrimsonLogger.i({ msg: `[${device.name}] pair success` });
-          device.isInPairingMode = false;
-          if (device.delegate && device.delegate.onConnectivityChanged) {
-            device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connected'));
-          }
-          device.startDataStream(async (success, error) => {
-            if (success) {
-              console.log(device.name, 'EEG data stream started.');
-              device.getLeadOffStatus();
-            } else _runDeviceErrorCB(device, error);
-          });
-        } else _runDeviceErrorCB(device, error);
-      });
+      _pairDevice(device);
     } else {
       if (device.delegate && device.delegate.onConnectivityChanged) {
         device.delegate.onConnectivityChanged(device, connectivity);
@@ -179,7 +183,6 @@ var _onFoundDevices = null;
 async function startScan(onScanning, onFoundDevices, targetDeviceId) {
   if (targetDeviceId) CrimsonLogger.i('[cmsn] scan target device', targetDeviceId);
   else {
-    if (cmsnDeviceMap.size > 0) disconnectAll();
     CrimsonLogger.i('[cmsn] startScan');
   }
 
@@ -229,7 +232,7 @@ async function _doScan() {
     _scanTimer = setInterval(() => {
       const curTimestamp = new Date().getTime();
       const devices = Array.from(_scannedDeviceMap.values()).filter((e) => curTimestamp - e.timestamp <= 30000);
-      // CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
+      CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
       CrimsonLogger.d(devices.map((e) => e.description));
       if (_onFoundDevices) _onFoundDevices(devices);
     }, 1000); //invoked per second
@@ -254,6 +257,7 @@ async function _onFoundTargetDevice(device) {
 var _targetDeviceId = null;
 var _targetDeviceDelegate = null;
 async function connect(deviceId, delegate) {
+  if (!deviceId) return;
   if (typeof deviceId !== 'string' || deviceId.length == 0) return;
 
   _targetDeviceDelegate = delegate;
@@ -275,6 +279,7 @@ async function connect(deviceId, delegate) {
 }
 
 const disconnect = async (deviceId, cb) => {
+  if (!deviceId) return;
   console.log(`[CMSN], disconnect`, deviceId);
   setEnableReconnect(false);
   if (_targetDeviceId == deviceId) _targetDeviceId = null;
@@ -283,31 +288,35 @@ const disconnect = async (deviceId, cb) => {
     // if (utils.isWin64()) device.shutdown(); // Windows下断开连接不及时，故直接发送关机指令
     await device.disconnect();
   }
-  await stopScan();
   if (cb) cb();
 };
 
 const setLEDColor = (deviceId, color) => {
+  if (!deviceId) return;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) device.setLEDColor(color);
 };
 
 const setSleepIdleTime = (deviceId, time, cb) => {
+  if (!deviceId) return;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) device.setSleepIdleTime(time, cb);
 };
 
 const setVibrationIntensity = (deviceId, value, cb) => {
+  if (!deviceId) return;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) device.setVibrationIntensity(value, cb);
 };
 
 const getSystemInfo = (deviceId, cb) => {
+  if (!deviceId) return;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) device.getSystemInfo(cb);
 };
 
 const getSerialNumber = (deviceId) => {
+  if (!deviceId) return;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) return device.peripheral.serial_number;
   return '';

@@ -690,6 +690,7 @@ class CMSNDevice {
     // always convert to RGB array
     const rgb = typeof color === 'string' ? hexToRGB(color) : color;
     if (rgb.length !== 3 || !rgb.every((x) => Number.isInteger(x) && x >= 0 && x <= 255)) {
+      console.log(rgb);
       this.onError(`setLEDColor: invalid RGB input value (${rgb})`);
       return;
     }

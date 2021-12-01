@@ -1,0 +1,13 @@
+build/
+dist/
+release/
+resources/
+tests/
+demo/
+coverage/
+**/*-min.js
+**/*.min.js
+package-lock.json
+yarn.lock
+cmsn.js
+cmsn.wasm

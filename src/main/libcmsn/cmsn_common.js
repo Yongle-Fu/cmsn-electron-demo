@@ -61,6 +61,7 @@ const CMSNError = createEnum({
   ble_power_off: -1001,
   dongle_unavailable: -1002,
   scan_error: -1003,
+  validate_sn_failed: -1100,
 });
 
 // Enum: CMD
@@ -241,6 +242,9 @@ function getErrorMessage(error, name) {
       // return 'please switch to pairing mode then connect again.';
       if (!name) name = '';
       return `请将设备${name}调整至配对模式。`;
+    case CMSNError.enum('validate_sn_failed'):
+      // return 'serial number validate error';
+      return `设备序列号校验失败`;
     default:
       // return 'unknown error';
       return '未知错误';

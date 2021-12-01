@@ -59,7 +59,7 @@ class CMSNBleAdapter {
     peripheral.removeAllListeners('servicesDiscover');
     peripheral.removeAllListeners('disconnect');
     peripheral.on('disconnect', () => {
-      CrimsonLogger.i(name, 'on peripheral peripheral');
+      CrimsonLogger.i(name, 'on peripheral disconnect');
       this.reset(peripheral);
     });
 
@@ -82,10 +82,14 @@ class CMSNBleAdapter {
 
   async onConnected(peripheral) {
     const name = peripheral.name;
-    // if (this.discoveringServices) {
-    //   CrimsonLogger.i(name, 'already in discoveringServices');
-    //   return;
-    // }
+    // avoid discoverServices frequently
+    if (this.discoveringServices === true) {
+      CrimsonLogger.i(name, 'already in discoveringServices');
+      setTimeout(() => {
+        this.discoveringServices = false;
+      }, 3000);
+      return;
+    }
     this.discoveringServices = true;
     this.logMessage(name, 'discoverServices...');
     try {
@@ -316,9 +320,7 @@ class CMSNBleAdapter {
   _startScan(cb, resolve, reject) {
     try {
       // NOTE: scan filter by serviceUuids can't works on Windows, so use scan filter by manufacturerData 0x5242 instead.
-      CrimsonLogger.i('_startScan 0');
       node_ble.startScanning([], true); //allowDuplicates
-      CrimsonLogger.i('_startScan 1');
       CMSNBleAdapter.onFoundDevice = cb;
       this.onStartScan();
       resolve();

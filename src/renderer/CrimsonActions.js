@@ -99,7 +99,7 @@ class CrimsonActions {
   }
 
   static toggleScan() {
-    if (!cmsnObservable.scanning) {
+    if (!cmsnObservable.adapterScanning) {
       this.startScan();
     } else {
       this.stopScan();

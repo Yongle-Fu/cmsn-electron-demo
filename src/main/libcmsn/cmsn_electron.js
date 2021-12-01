@@ -232,7 +232,7 @@ async function _doScan() {
     _scanTimer = setInterval(() => {
       const curTimestamp = new Date().getTime();
       const devices = Array.from(_scannedDeviceMap.values()).filter((e) => curTimestamp - e.timestamp <= 30000);
-      CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
+      //CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
       CrimsonLogger.d(devices.map((e) => e.description));
       if (_onFoundDevices) _onFoundDevices(devices);
     }, 1000); //invoked per second

@@ -59,11 +59,13 @@ dmg:
 
 # Mac OS configuration
 mac:
-  #target: [dmg, zip]
+  target: [dmg]
   icon: 'resources/icon.icns'
-  target: default
   category: public.education.tools
   identity: null
+  entitlements: resources/entitlements.mac.plist
+  extendInfo:
+    NSBluetoothAlwaysUsageDescription: 需要通过您的蓝牙设备连接到开心果头环
 
 # Config for the windows installer
 nsis:

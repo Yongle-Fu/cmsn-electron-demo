@@ -5,7 +5,7 @@ const { CONNECTIVITY, CONTACT_STATE, ORIENTATION, CMSNLogLevel, IMU, CMSNError, 
 
 async function _runErrorCB(error) {
   if (!error) return;
-  console.error('_runErrorCB', error);
+  CrimsonLogger.e('_runErrorCB', error);
   if (_onErrorCb) {
     _onErrorCb({ code: error, message: getErrorMessage(error) });
   }
@@ -13,40 +13,65 @@ async function _runErrorCB(error) {
 
 function _runDeviceErrorCB(device, error) {
   if (!error) return;
-  console.error('_runDeviceErrorCB', device.name, error);
+  CrimsonLogger.e('_runDeviceErrorCB', device.name, error);
+  if (error == CMSNError.enum('validate_info_failed')) device.shouldReconnect = false;
   if (device.delegate && device.delegate.onError) {
-    device.delegate.onError({ code: error, message: getErrorMessage(error, device.name) });
+    device.delegate.onError(device, { code: error, message: getErrorMessage(error, device.name) });
   }
 }
 
 function _pairDevice(device) {
   if (device.isConnected) {
-    if (device.delegate && device.delegate.onConnectivityChanged) {
-      device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connecting'));
+      if (device.delegate && device.delegate.onConnectivityChanged) {
+        device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connecting'));
+      }
+      device.pair(async (success, error) => {
+        if (success) {
+          CrimsonLogger.i({ msg: `[${device.name}] pair success` });
+          device.isInPairingMode = false;
+          device.reconnectInNormalModeOnly = true;
+          if (device.delegate && device.delegate.onConnectivityChanged) {
+            device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connected'));
+          }
+          device.startDataStream(async (success, error) => {
+            if (success) {
+              CrimsonLogger.i(device.name, 'EEG data stream started.');
+              device.getLeadOffStatus();
+            } else _runDeviceErrorCB(device, error);
+          });
+        } else _runDeviceErrorCB(device, error);
+      });
     }
-    device.pair(async (success, error) => {
-      if (success) {
-        CrimsonLogger.i({ msg: `[${device.name}] pair success` });
-        device.isInPairingMode = false;
-        if (device.delegate && device.delegate.onConnectivityChanged) {
-          device.delegate.onConnectivityChanged(device, CONNECTIVITY.enum('connected'));
-        }
-        device.startDataStream(async (success, error) => {
-          if (success) {
-            console.log(device.name, 'EEG data stream started.');
-            device.getLeadOffStatus();
-          } else _runDeviceErrorCB(device, error);
-        });
-      } else _runDeviceErrorCB(device, error);
-    });
+}
+
+async function _checkSN(device, sn) {
+  if (sn && _onCheckSN) {
+    CrimsonLogger.i(device.name, 'check sn', sn);
+    device.checkingSN = true;
+    _onCheckSN(device.id, device.name, sn);
+    // [Function: callIntoRenderer] is not easy to reply result, so wait renderer progress to call onDeviceAvailable
+    // var result = await _onCheckSN(sn);
   }
+}
+
+function onDeviceAvailable(deviceId, available) {
+  if (!deviceId) return;
+  const device = cmsnDeviceMap.get(deviceId);
+  if (!device) return;
+  CrimsonLogger.i(device.name, 'onDeviceAvailable', available);
+  device.checkingSN = false;
+  if (available) _pairDevice(device);
+  else device.disconnect();
 }
 
 const _deviceListener = new CMSNDeviceListener({
   onError: (device, error) => _runDeviceErrorCB(device, error),
-  onDeviceInfoReady: (device, deviceInfo) => {
+  onDeviceInfoReady: async (device, deviceInfo) => {
     CrimsonLogger.i(device.name, `Device info is ready:`, deviceInfo);
     if (device.delegate && device.delegate.onDeviceInfoReady) device.delegate.onDeviceInfoReady(device, deviceInfo);
+
+    // business logic
+    if (deviceInfo) await _checkSN(device, deviceInfo.serial_number);
   },
   onBatteryLevelChanged: (device, batteryLevel) => {
     CrimsonLogger.i(device.name, `onBatteryLevelChanged:`, batteryLevel);
@@ -57,7 +82,7 @@ const _deviceListener = new CMSNDeviceListener({
     _startReconnectTimer();
 
     if (device.isConnected) {
-      _pairDevice(device);
+      if (!device.checkingSN) _pairDevice(device);
     } else {
       if (device.delegate && device.delegate.onConnectivityChanged) {
         device.delegate.onConnectivityChanged(device, connectivity);
@@ -127,19 +152,21 @@ const _deviceListener = new CMSNDeviceListener({
 
 const _useDongle = false;
 let _cmsnSDK;
-let _onErrorCb;
-let adapterAvailable = false;
-
-const initSDK = async (onError, onAdapterStateChanged) => {
+let _onErrorCb = null;
+let _onCheckSN = null;
+let _adapterAvailable = false;
+let _multiDevices = false;
+const initSDK = async (onError, onAdapterStateChanged, onCheckSN) => {
   if (_cmsnSDK) return;
-  console.log('CrimsonSDK.init');
+  CrimsonLogger.i('CrimsonSDK.init');
   _onErrorCb = onError;
+  _onCheckSN = onCheckSN;
 
   // eslint-disable-next-line require-atomic-updates
   _cmsnSDK = await CrimsonSDK.init(_useDongle, CMSNLogLevel.enum('info')); //info/error/warn
   _cmsnSDK.on('error', (e) => _runErrorCB(e));
   _cmsnSDK.on('onAdapterStateChanged', async (available) => {
-    adapterAvailable = available;
+    _adapterAvailable = available;
     if (available) {
       if (cmsnDeviceMap.size > 0) _startReconnectTimer();
     } else {
@@ -150,20 +177,22 @@ const initSDK = async (onError, onAdapterStateChanged) => {
     }
     if (onAdapterStateChanged) onAdapterStateChanged(available);
   });
-  if (_cmsnSDK.adapter.available) await _doScan();
-  console.log('CrimsonSDK.init done');
+  if (_cmsnSDK.adapter.available) onAdapterStateChanged(true);
+  CrimsonLogger.i('CrimsonSDK.init done');
 };
 
-const disposeSDK = async () => {
+const disposeSDK = async (cb) => {
   disconnectAll();
   await CrimsonSDK.dispose();
+  _cmsnSDK = null;
+  if (cb) cb();
 };
 
 //退出程序时保证可以断开头环
 process.on('SIGINT', async () => {
-    console.log({ message: `SIGINT signal received.` });
+    CrimsonLogger.i({ message: `SIGINT signal received.` });
     await disposeSDK();
-    console.log('End program');
+    CrimsonLogger.i('End program');
     process.exit(0);
 });
 
@@ -182,9 +211,7 @@ var _onScanning = null;
 var _onFoundDevices = null;
 async function startScan(onScanning, onFoundDevices, targetDeviceId) {
   if (targetDeviceId) CrimsonLogger.i('[cmsn] scan target device', targetDeviceId);
-  else {
-    CrimsonLogger.i('[cmsn] startScan');
-  }
+  else CrimsonLogger.i('[cmsn] startScan, current scanning', _cmsnSDK.scanning);
 
   _onScanning = onScanning;
   _onFoundDevices = onFoundDevices;
@@ -196,7 +223,7 @@ async function startScan(onScanning, onFoundDevices, targetDeviceId) {
 }
 
 async function stopScan(cb) {
-  console.log('stopScan');
+  CrimsonLogger.i('stopScan');
   if (_onScanning) {
     _onScanning(false);
     _onScanning = null;
@@ -207,13 +234,13 @@ async function stopScan(cb) {
     clearInterval(_scanTimer);
     _scanTimer = null;
   }
-  if (adapterAvailable && _cmsnSDK && _cmsnSDK.scanning) await _cmsnSDK.stopScan(cb);
+  if (_cmsnSDK && _cmsnSDK.scanning) await _cmsnSDK.stopScan(cb);
 }
 
 const _scannedDeviceMap = new Map();
 var _scanTimer;
 async function _doScan() {
-  if (!adapterAvailable || !_cmsnSDK || _cmsnSDK.scanning) return;
+  if (!_adapterAvailable || !_cmsnSDK || _cmsnSDK.scanning) return;
   if (!_targetDeviceId && !_onFoundDevices) return;
 
   if (_onScanning) _onScanning(true);
@@ -232,7 +259,7 @@ async function _doScan() {
     _scanTimer = setInterval(() => {
       const curTimestamp = new Date().getTime();
       const devices = Array.from(_scannedDeviceMap.values()).filter((e) => curTimestamp - e.timestamp <= 30000);
-      //CrimsonLogger.i('[CMSN]: found devices: ', devices.length);
+      CrimsonLogger.d('[CMSN]: found devices: ', devices.length);
       CrimsonLogger.d(devices.map((e) => e.description));
       if (_onFoundDevices) _onFoundDevices(devices);
     }, 1000); //invoked per second
@@ -242,8 +269,7 @@ async function _doScan() {
 /// Default: _subscription attention data stream only
 const _subscription = { attention: true, meditation: true, socialEngagement: false };
 async function _onFoundTargetDevice(device) {
-  // if (_cmsnSDK.scanning) await stopScan();
-
+  if (!_multiDevices) stopScan();
   device.delegate = _targetDeviceDelegate;
   device.listener = _deviceListener;
 
@@ -269,23 +295,22 @@ async function connect(deviceId, delegate) {
       return;
     }
     // 连接到已扫描到的设备
-    console.log(`[CMSN], bind device`, device.id, device.name);
+    CrimsonLogger.i(`[CMSN], bind device`, device.id, device.name);
     _onFoundTargetDevice(device);
   } else {
     // 根据设备ID扫描并连接
-    console.log(`[CMSN], auto connect device`, deviceId);
+    CrimsonLogger.i(`[CMSN], auto connect device`, deviceId);
     await startScan(null, null, deviceId);
   }
 }
 
 const disconnect = async (deviceId, cb) => {
   if (!deviceId) return;
-  console.log(`[CMSN], disconnect`, deviceId);
-  setEnableReconnect(false);
+  CrimsonLogger.i(`[CMSN], disconnect`, deviceId);
   if (_targetDeviceId == deviceId) _targetDeviceId = null;
   var device = cmsnDeviceMap.get(deviceId);
   if (device) {
-    // if (utils.isWin64()) device.shutdown(); // Windows下断开连接不及时，故直接发送关机指令
+    device.shouldReconnect = false;
     await device.disconnect();
   }
   if (cb) cb();
@@ -327,7 +352,7 @@ async function _startIMU(device) {
   if (device.imuEnabled) return;
   device.imuEnabled = true;
   await device.startIMU(IMU.SAMPLE_RATE.enum('sr104'), (success) => {
-    if (success) console.log('imu started');
+    if (success) CrimsonLogger.i('imu started');
     else device.imuEnabled = false;
   });
 }
@@ -336,16 +361,16 @@ async function _stopIMU(device) {
   if (!device.imuEnabled) return;
   device.imuEnabled = false;
   await device.stopIMU((success) => {
-    if (success) console.log('imu stopped');
+    if (success) CrimsonLogger.i('imu stopped');
     else device.imuEnabled = true;
   });
 }
 
 /** _reconnect **/
 let _reconnectEnabled = true;
-const setEnableReconnect = (enabled) => {
-  _reconnectEnabled = enabled;
-};
+// const setEnableReconnect = (enabled) => {
+//   _reconnectEnabled = enabled;
+// };
 
 let _reconnectTimer = null;
 function _startReconnectTimer() {
@@ -365,15 +390,20 @@ function _stopReconnectTimer() {
 }
 
 async function _reconnect() {
-  if (!_reconnectEnabled || !adapterAvailable || cmsnDeviceMap.size == 0) {
+  if (!_reconnectEnabled || !_adapterAvailable || cmsnDeviceMap.size == 0) {
     _stopReconnectTimer();
     return;
   }
 
   for (let device of cmsnDeviceMap.values()) {
-    if (!device.shouldReconnect) continue;
-    //自动重连历史配对成功过且当前处于未连接的设备
+    if (!device.shouldReconnect || device.checkingSN) continue;
     if (device.isDisconnected) {
+      // 不自动连接配对模式下的设备，防止抢连
+      if (device.isInPairingMode && device.reconnectInNormalModeOnly == true) {
+        CrimsonLogger.i({ msg: `[${device.name}] isInPairingMode=true` });
+        continue;
+      }
+      // 自动重连历史配对成功过且当前处于未连接的设备
       CrimsonLogger.i(`[${device.name}] try _reconnect ...`);
       await device.connect();
       if (_useDongle) break;
@@ -384,7 +414,6 @@ async function _reconnect() {
 module.exports = {
   initSDK,
   disposeSDK,
-  adapterAvailable,
   startScan,
   stopScan,
   connect,
@@ -395,4 +424,5 @@ module.exports = {
   setVibrationIntensity,
   getSystemInfo,
   getSerialNumber,
+  onDeviceAvailable,
 };

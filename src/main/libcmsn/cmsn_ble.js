@@ -26,7 +26,7 @@ class CMSNBleAdapter {
   }
 
   reset(peripheral) {
-    this.discoveringServices = false;
+    this.clearDiscoverTimeout();
     if (!peripheral) return;
     peripheral.dataStreamCharacteristicWrite = undefined;
     peripheral.dataStreamCharacteristicNotify = undefined;
@@ -46,7 +46,6 @@ class CMSNBleAdapter {
     } catch (error) {
       CrimsonLogger.w(peripheral.name, 'disconnect error', error);
     }
-    // if (peripheralMap.has(address)) peripheralMap.delete(address);
   }
 
   connect(address, peripheral) {
@@ -54,13 +53,15 @@ class CMSNBleAdapter {
       CrimsonLogger.w('connect params invalid', address, peripheral);
       return;
     }
-    peripheralMap.set(peripheral.address, peripheral);
+    peripheralMap.set(address, peripheral);
     var name = peripheral.name;
     peripheral.removeAllListeners('servicesDiscover');
     peripheral.removeAllListeners('disconnect');
+    const that = this;
     peripheral.on('disconnect', () => {
       CrimsonLogger.i(name, 'on peripheral disconnect');
-      this.reset(peripheral);
+      peripheral.state = 'disconnected';
+      that.reset(peripheral);
     });
 
     CrimsonLogger.i('cmsn_ble, connecting...', address, name, peripheral.state);
@@ -69,39 +70,46 @@ class CMSNBleAdapter {
       this.onConnected(peripheral);
       return;
     }
-    const that = this;
     peripheral.connect(async (error) => {
       if (error) {
         CrimsonLogger.w(name, 'connect error', error);
         that.reset(peripheral);
         return;
       }
-      if (peripheral) that.onConnected(peripheral);
+      if (peripheral) await that.onConnected(peripheral);
     });
   }
 
+  clearDiscoverTimeout() {
+    if (this.discoverServicesTimeout) {
+        clearTimeout(this.discoverServicesTimeout);
+        this.discoverServicesTimeout = null;
+      }
+  }
+  
   async onConnected(peripheral) {
     const name = peripheral.name;
-    // avoid discoverServices frequently
-    if (this.discoveringServices === true) {
-      CrimsonLogger.i(name, 'already in discoveringServices');
-      setTimeout(() => {
-        this.discoveringServices = false;
-      }, 3000);
+    this.logMessage(name, 'discoverServices...');
+    if (this.discoverServicesTimeout) {
+      this.logMessage(name, 'already in discoverServices...');
       return;
     }
-    this.discoveringServices = true;
-    this.logMessage(name, 'discoverServices...');
+    this.discoverServicesTimeout = setTimeout(async () => {
+      CrimsonLogger.i(name, 'discoverServices timeout');
+      this.discoverServicesTimeout = null;
+      if (peripheral.state == 'connected') await this.onConnected(peripheral);
+    }, 3000);
     try {
       const services = await this.discoverServices(peripheral);
-      CrimsonLogger.d('services', services);
+      CrimsonLogger.i(name, 'discoverServices count', services.length);
       for (let service of services) {
         const characteristics = await this.getCharacteristics(peripheral, service);
         await this.onDiscoverCharacteristics(peripheral, characteristics);
       }
+      this.clearDiscoverTimeout();
       this.onDataStreamCharacteristicReady(peripheral);
     } catch (error) {
-      CrimsonLogger.w('discoverServices error', error);
+      CrimsonLogger.w(name, 'discoverServices error', error);
     }
   }
 
@@ -208,7 +216,7 @@ class CMSNBleAdapter {
           });
           try {
             await this.enableNotification(characteristic, true);
-            this.logMessage('data stream notification enabled');
+            this.logMessage(name, 'data stream notification enabled');
           } catch (error) {
             CrimsonLogger.w(name, 'enabling data stream notification failed', error);
           }

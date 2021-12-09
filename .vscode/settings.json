@@ -44,4 +44,10 @@
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
+    "cSpell.words": [
+        "brainco",
+        "icns",
+        "jszip",
+        "pako"
+    ],
 }

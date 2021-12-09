@@ -1,26 +1,16 @@
 /* eslint-disable indent */
+const electronLog = require('electron-log');
 const debug = require('debug');
-const log = debug('cmsn');
-const d = log.extend('debug');
-const i = log.extend('info');
-const w = log.extend('warn');
-const e = log.extend('error');
-// const d = console.debug;
-// const i = console.info;
-// const w = console.warn;
-// const e = console.error;
+const cmsnLogger = debug('cmsn');
+const d = cmsnLogger.extend('debug');
+const i = cmsnLogger.extend('info');
+const w = cmsnLogger.extend('warn');
+const e = cmsnLogger.extend('error');
 
-// const isDevelopment = process.env.NODE_ENV !== 'production';
-// const shouldLogging = !isDevelopment;
-const shouldLogging = false;
-if (shouldLogging) {
-  // log.log = console.log.bind(console);
-  const electronLog = require('electron-log');
-  console.log = electronLog.log;
-}
+debug.log = electronLog.log;
+console.log = electronLog.log;
 
 const log_level_arr = ['debug', 'info', 'warn', 'error'];
-
 function setLogLevel(level) {
   if (level >= 0 && level < 4) {
     const cmsn_log_namespaces = log_level_arr

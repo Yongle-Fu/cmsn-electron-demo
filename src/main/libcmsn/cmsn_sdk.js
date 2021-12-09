@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable require-atomic-updates */
 /* eslint-disable indent */
 const loadWasm = require('./cmsn');
@@ -65,7 +64,7 @@ class CrimsonSDK extends EventEmitter {
 
   /** init sdk **/
   static async init(useDongle, logLevel) {
-    if (cmsnSDK) return;
+    if (cmsnSDK) return cmsnSDK;
     cmsnSDK = new CrimsonSDK();
     cmsnSDK.useDongle = useDongle;
 
@@ -232,12 +231,6 @@ class CrimsonSDK extends EventEmitter {
       d.disconnect();
     });
     cmsnDeviceMap.clear();
-    await sleep(200);
-
-    if (!cmsnSDK) return;
-    if (cmsnSDK.adapter) cmsnSDK.adapter.dispose();
-    cmsnSDK = null;
-    await sleep(300);
   }
 
   static setLogLevel(level) {
@@ -271,7 +264,7 @@ class CrimsonSDK extends EventEmitter {
     }
     try {
       const that = this;
-      await adapter.initAdapter({
+      adapter.initAdapter({
         onError: function (error) {
           CrimsonLogger.e('[CMSN ERROR]:', error);
           that.emit('error', error);

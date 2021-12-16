@@ -1,7 +1,7 @@
 /* eslint-disable require-atomic-updates */
 /* eslint-disable indent */
 const node_ble = require('cmsn-noble');
-const { textDecoder } = require('./cmsn_utils');
+const { textDecoder, isWin64 } = require('./cmsn_utils');
 const { CONNECTIVITY, BLE_UUID } = require('./cmsn_common');
 const CrimsonLogger = require('./cmsn_logger');
 
@@ -327,8 +327,11 @@ class CMSNBleAdapter {
 
   _startScan(cb, resolve, reject) {
     try {
+      CrimsonLogger.i('cmsn_ble, _startScan');
       // NOTE: scan filter by serviceUuids can't works on Windows, so use scan filter by manufacturerData 0x5242 instead.
-      node_ble.startScanning([], true); //allowDuplicates
+      const allowDuplicates = true;
+      if (isWin64()) node_ble.startScanning([], allowDuplicates);
+      else node_ble.startScanning([BLE_UUID.SERVICE_UUID_DATA_STREAM], allowDuplicates);
       CMSNBleAdapter.onFoundDevice = cb;
       this.onStartScan();
       resolve();

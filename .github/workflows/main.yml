@@ -1,0 +1,50 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+      - '!master'
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+      tags:
+        description: 'Test scenario tags'
+        required: true
+        type: string
+
+env:
+  ALI_OSS_SECRET: ${{ secrets.ALI_OSS_SECRET }}
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v3.0.0
+        with:
+          node-version: '14.16.0'
+      - run: yarn install
+      - run: yarn dist
+      - run: ./oss.sh mac
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-node@v3.0.0
+        with:
+          node-version: '14.16.0'
+      - run: yarn install
+      - run: yarn dist
+      - run: sh ./oss.sh win 

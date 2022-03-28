@@ -227,7 +227,7 @@ class CrimsonSDK extends EventEmitter {
 
   /** process.onExit **/
   static async dispose() {
-    cmsnDeviceMap.forEach((d, _) => {
+    cmsnDeviceMap.forEach((d) => {
       d.disconnect();
     });
     cmsnDeviceMap.clear();

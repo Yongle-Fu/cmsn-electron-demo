@@ -14,36 +14,6 @@ publish:
   url: http://focus.edu.brainco.cn/${os}
 
 forceCodeSigning: false
-# extraResources:
-#   - from: "node_modules"
-#     to: "node_modules"
-#     filter:
-#       - "electron-log/**/*"
-#       - "ms/**/*"
-#       - "moment/**/*"
-#       - "debug/**/*" # for windows
-#       - "cmsn-noble/**/*"
-#       - "bindings/**/*"
-#       - "napi-thread-safe-callback/**/*"
-#       - "node-addon-api/**/*"
-#       - "file-uri-to-path/**/*"
-#       - "cmsn-nrf-ble-driver-js/**/*" # nRF dongle
-#       - "cmsn-nrf-device-lister/**/*"
-#       - "set-immediate-shim/**/*"
-#       - "lie/**/*"
-#       - "pako/**/*"
-#       - "readable-stream/**/*"
-#       - "usb/**/*"
-#       - "await-semaphore/**/*"
-#       - "commander/**/*"
-#       - "serialport/**/*"
-#       - "@serialport/**/*"
-#       - "cmake-js/**/*"
-#       - "*-case/**/*"
-#       - "*-case-first/**/*"
-#       - "underscore/**/*"
-#       - "crc/**/*"
-#       - "jszip/**/*"
 
 # Config for OSX dmg
 dmg:
@@ -65,7 +35,7 @@ mac:
   identity: null
   entitlements: resources/entitlements.mac.plist
   extendInfo:
-    NSBluetoothAlwaysUsageDescription: 需要通过您的蓝牙设备连接到开心果头环
+    NSBluetoothAlwaysUsageDescription: 需要通过您的蓝牙设备连接到脑环
 
 # Config for the windows installer
 nsis:

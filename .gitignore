@@ -3,3 +3,4 @@ dist/
 build/
 release/
 yarn-error.log
+node_modules.zip

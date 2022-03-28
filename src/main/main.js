@@ -29,7 +29,7 @@ async function createWindow() {
     var cmd = arg.cmd;
     switch (cmd) {
     case 'initSDK':
-      await cmsn.initSDK((e) => {
+      await cmsn.initSDK(false, (e) => {
         if (e && e.message) {
           console.error(e.message);
           event.reply(messageRes, { cmd: 'onError', error: e });

@@ -1,7 +1,22 @@
 {
-  "include": ["./src/"],
+  "extends": "./paths.json",
   "compilerOptions": {
-    "jsx": "react",
-    "experimentalDecorators": true
-  }
+    "outDir": "ts",
+    "target": "ESNext",
+    "module": "ESNext",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "strict": true,
+    "jsx": "react-jsx"
+  },
+  "exclude": [
+    "**/node_modules",
+    "dist",
+    "scripts",
+    "resources",
+  ]
 }

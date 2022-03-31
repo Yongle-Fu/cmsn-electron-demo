@@ -1,11 +1,13 @@
 appId: tech.brainco.crimson.demo
-copyright: Copyright © 2021 BrainCo Tech
+copyright: Copyright © 2022 BrainCo Inc.
 productName: Crimson-Demo
 
 asar: true
 
+files: ["dist"]
+
 directories:
-  app: ./
+  # app: ./
   buildResources: resources
   output: release/${platform}/
 

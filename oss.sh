@@ -17,8 +17,9 @@ declare -a result=()
 encodeFilename=""
 
 function uploadFile(){
-  timestamp=$(date +%s)
-  urlEncode "$timestamp-$(basename "$1")"
+  # timestamp=$(date +%s)
+  # urlEncode "$timestamp-$(basename "$1")"
+  urlEncode "$(basename "$1")"
   cloudDir="$cloudFolder/$encodeFilename"
 
   contentType=$(file -b --mime-type "$1")

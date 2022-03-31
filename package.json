@@ -1,48 +1,52 @@
 {
   "name": "cmsn-electron",
+  "productName": "Crimson Electron",
+  "private": true,
   "repository": "https://github.com/Yongle-Fu/cmsn-electron-demo",
-  "author": "Yongle Fu",
+  "author": "Yongle <yongle.work@gmail.com>",
+  "license": "MIT",
   "version": "1.0.0",
   "description": "Crimson Electron Example",
   "keywords": [
     "Electron",
     "cmsn"
   ],
-  "scripts": {
-    "compile": "electron-webpack",
-    "dev": "electron-webpack dev",
-    "prod": "electron-webpack prod",
-    "dist": "npm run compile && cp src/main/libcmsn/*.wasm dist/main && electron-builder",
-    "dist:dir": "npm run dist --dir -c.compression=store -c.mac.identity=null"
+  "engines": {
+    "node": ">=14.17.0"
   },
-  "electronWebpack": {
-    "main": {
-      "webpackConfig": "webpack.main.additions.js"
-    }
+  "main": "dist/main/index.cjs",
+  "scripts": {
+    "dev": "rm -Rf dist && node scripts/watch.mjs",
+    "dist": "rm -Rf dist && tsc --noEmit -p packages/renderer/tsconfig.json && node scripts/build.mjs && electron-builder",
+    "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
   },
   "dependencies": {
-    "cmsn-noble": "3.1.6",
-    "debug": "^4.3.2",
-    "electron-log": "^4.4.1",
-    "mobx": "^6.3.6",
-    "mobx-react": "^7.2.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "source-map-support": "^0.5.20"
+    "@mantine/core": "^4.1.0",
+    "@mantine/hooks": "^4.1.0",
+    "crimson-sdk": "^1.1.4",
+    "electron-store": "^8.0.1",
+    "tabler-icons-react": "^1.43.0"
   },
   "devDependencies": {
-    "@babel/preset-react": "^7.14.5",
-    "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^6.3.2",
-    "electron": "8.5.5",
+    "@types/react": "^17.0.40",
+    "@types/react-dom": "^17.0.13",
+    "@vitejs/plugin-react": "^1.2.0",
+    "electron": "^17.1.2",
     "electron-builder": "^23.0.2",
-    "electron-devtools-installer": "^3.2.0",
-    "electron-webpack": "^2.8.2",
-    "electron-webpack-eslint": "^6.0.0",
-    "eslint-plugin-html": "^6.2.0",
-    "eslint-plugin-react": "^7.26.1",
+    "execa": "^6.1.0",
+    "mobx": "^6.3.6",
+    "mobx-react": "^7.2.1",
     "node-gyp": "^8.4.0",
-    "webpack": "^4.42.1",
-    "webpack-build-notifier": "^2.3.0"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "sass": "^1.49.9",
+    "typescript": "^4.6.2",
+    "vite": "^2.8.6",
+    "vite-plugin-esmodule": "^1.2.3",
+    "vite-plugin-optimizer": "^1.2.1"
+  },
+  "env": {
+    "VITE_DEV_SERVER_HOST": "127.0.0.1",
+    "VITE_DEV_SERVER_PORT": 7777
   }
 }

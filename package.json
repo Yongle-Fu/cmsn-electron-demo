@@ -2,7 +2,7 @@
   "name": "cmsn-electron",
   "productName": "Crimson Electron",
   "private": true,
-  "repository": "https://github.com/Yongle-Fu/cmsn-electron-demo",
+  "repository": "https://github.com/BrainCoTech/cmsn-electron-demo",
   "author": "Yongle <yongle.work@gmail.com>",
   "license": "MIT",
   "version": "1.0.0",

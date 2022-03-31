@@ -1,8 +1,8 @@
 # cmsn-electron-demo
 
-![GitHub stars](https://img.shields.io/github/stars/Yongle-Fu/cmsn-electron-demo?color=fa6470&style=flat)
-![GitHub issues](https://img.shields.io/github/issues/Yongle-Fu/cmsn-electron-demo?color=d8b22d&style=flat)
-![GitHub license](https://img.shields.io/github/license/Yongle-Fu/cmsn-electron-demo?style=flat)
+![GitHub stars](https://img.shields.io/github/stars/BrainCoTech/cmsn-electron-demo?color=fa6470&style=flat)
+![GitHub issues](https://img.shields.io/github/issues/BrainCoTech/cmsn-electron-demo?color=d8b22d&style=flat)
+![GitHub license](https://img.shields.io/github/license/BrainCoTech/cmsn-electron-demo?style=flat)
 [![Required Node.JS >= v14.17.0](https://img.shields.io/static/v1?label=node&message=%3E=14.17.0&logo=node.js&color=3f893e&style=flat)](https://nodejs.org/about/releases)
 
 **[English](README.md) | 简体中文**
@@ -20,14 +20,20 @@
 ```shell
 # kill -9 `pgrep Electron`
 
-# install dependency
+# clone the project
+git clone xxx
+
+# open the project directory
+cd cmsn-electron-demo
+
+# install dependencies
 yarn install
 
-# develop
+# start the application
 yarn dev
 
-# package
-yarn dist
+# make a production build
+yarn build
 
 ```
 
@@ -49,7 +55,7 @@ yarn dist
 ├   ├── renderer
 ├
 ├── release                   在生产构建后生成，包含可执行文件
-├   ├── {version}
+├   ├── {platform}
 ├       ├── win-unpacked      包含未打包的应用程序可执行文件
 ├       ├── Setup.exe         应用程序的安装程序
 ├

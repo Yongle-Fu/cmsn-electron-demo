@@ -1,8 +1,8 @@
 # cmsn-electron-demo
 
-![GitHub stars](https://img.shields.io/github/stars/Yongle-Fu/cmsn-electron-demo?color=fa6470&style=flat)
-![GitHub issues](https://img.shields.io/github/issues/Yongle-Fu/cmsn-electron-demo?color=d8b22d&style=flat)
-![GitHub license](https://img.shields.io/github/license/Yongle-Fu/cmsn-electron-demo?style=flat)
+![GitHub stars](https://img.shields.io/github/stars/BrainCoTech/cmsn-electron-demo?color=fa6470&style=flat)
+![GitHub issues](https://img.shields.io/github/issues/BrainCoTech/cmsn-electron-demo?color=d8b22d&style=flat)
+![GitHub license](https://img.shields.io/github/license/BrainCoTech/cmsn-electron-demo?style=flat)
 [![Required Node.JS >= v14.17.0](https://img.shields.io/static/v1?label=node&message=%3E=14.17.0&logo=node.js&color=3f893e&style=flat)](https://nodejs.org/about/releases)
 
 **English | [简体中文](README.zh-CN.md)**
@@ -17,20 +17,12 @@
 
 ## Usage
 
-- The first way is to use scaffolding
-
-```sh
-npm create electron-vite
-```
-
-- The second way is to clone the repository manually
-
 ```sh
 # clone the project
 git clone xxx
 
 # open the project directory
-cd cmsn-electron
+cd cmsn-electron-demo
 
 # install dependencies
 yarn install
@@ -60,7 +52,7 @@ Once `dev` or `build` npm-script is executed, the `dist` folder will be generate
 ├   ├── renderer
 ├
 ├── release                   Generated after production build, contains executables
-├   ├── {version}
+├   ├── {platform}
 ├       ├── win-unpacked      Contains unpacked application executable
 ├       ├── Setup.exe         Installer for the application
 ├
@@ -120,7 +112,7 @@ Once `dev` or `build` npm-script is executed, the `dist` folder will be generate
 - Main-process, Preload-script are also built with Vite, and they're built as [build.lib](https://vitejs.dev/config/#build-lib).  
     So they just need to configure Rollup.
 
-**Click to see more** 👉 [packages/main/vite.config.ts](https://github.com/Yongle-Fu/cmsn-electron-demo/blob/main/packages/main/vite.config.ts)
+**Click to see more** 👉 [packages/main/vite.config.ts](https://github.com/BrainCoTech/cmsn-electron-demo/blob/main/packages/main/vite.config.ts)
 
 ```js
 export default {

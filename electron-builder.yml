@@ -19,7 +19,7 @@ forceCodeSigning: false
 
 # Config for OSX dmg
 dmg:
-  artifactName: '${name}-${version}.${ext}'
+  artifactName: '${name}-${platform}.${ext}'
   contents:
     - type: link
       path: /Applications
@@ -48,7 +48,7 @@ nsis:
   runAfterFinish: true
   menuCategory: 'CrimsonMenu'
   # include: "resources/installer.nsh"
-  artifactName: '${name}-setup-${version}-${arch}.${ext}'
+  artifactName: '${name}-setup-${platform}-${arch}.${ext}'
 
 # Windows configuration
 win:
@@ -64,4 +64,4 @@ linux:
     - deb
     - AppImage
   category: public.education.tools
-  artifactName: '${name}-setup-${version}-${arch}.${ext}'
+  artifactName: '${name}-setup-${platform}-${arch}.${ext}'

@@ -1568,10 +1568,10 @@ crc@^3.8.0:
   dependencies:
     buffer "^5.1.0"
 
-crimson-sdk@^1.1.4:
-  version "1.1.4"
-  resolved "https://registry.npmmirror.com/crimson-sdk/-/crimson-sdk-1.1.4.tgz#25f7bf053342130cd4dee8a7a6de28d6be7e5c0d"
-  integrity sha512-3TNJqAqhUjibTHjVWATrThbZSrPJUZK6XYUNwpbc3DhoLJVZi60nay0XyLayDha0XmFHE1zyaDryrbMRBazC5A==
+crimson-sdk@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.npmmirror.com/crimson-sdk/-/crimson-sdk-1.1.5.tgz#6bef69ee80307e26913bfab81fecedae06d605b1"
+  integrity sha512-H9954BpznLiq1pjl+2BFHv/4UfUBiZyaIlUHyLoCvFiN9e7swSUKDm8tPWkids8mSWx7hfZXTXv+5p4Ujnqs6Q==
   dependencies:
     cmsn-noble "3.1.6"
 

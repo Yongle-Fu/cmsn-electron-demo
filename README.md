@@ -25,13 +25,13 @@ git clone xxx
 cd cmsn-electron-demo
 
 # install dependencies
-yarn install
+pnpm install
 
 # start the application
-yarn dev
+pnpm dev
 
 # make a production build
-yarn build
+pnpm build
 ```
 
 ## Directory structure

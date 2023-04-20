@@ -18,7 +18,7 @@
   "scripts": {
     "dev": "rm -Rf dist && node scripts/watch.mjs",
     "dist": "rm -Rf dist && tsc --noEmit -p packages/renderer/tsconfig.json && node scripts/build.mjs && electron-builder",
-    "dist:dir": "yarn dist --dir -c.compression=store -c.mac.identity=null"
+    "dist:dir": "pnpm dist --dir -c.compression=store -c.mac.identity=null"
   },
   "dependencies": {
     "@mantine/core": "^4.1.0",

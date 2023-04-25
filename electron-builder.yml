@@ -3,6 +3,7 @@ copyright: Copyright © 2022 BrainCo Inc.
 productName: Crimson-Demo
 
 asar: true
+# asar: false
 
 files: ["dist"]
 
@@ -17,9 +18,45 @@ publish:
 
 forceCodeSigning: false
 
+extraResources:
+  - from: "node_modules"
+    to: "node_modules"
+    filter:
+      - "electron-log/**/*"
+      - "ms/**/*"
+      - "moment/**/*"
+      - "debug/**/*" # for windows
+      - "cmsn-noble/**/*"
+      - "bindings/**/*"
+      - "napi-thread-safe-callback/**/*"
+      - "node-addon-api/**/*"
+      - "file-uri-to-path/**/*"
+      - "pc-ble-driver-js/**/*" # nrf dongle
+      - "cmsn-nrf-ble-driver-js/**/*" # nrf dongle
+      - "cmsn-nrf-device-lister/**/*"
+      - "set-immediate-shim/**/*"
+      - "lie/**/*"
+      - "pako/**/*"
+      - "readable-stream/**/*"
+      - "usb/**/*"
+      - "await-semaphore/**/*"
+      - "commander/**/*"
+      - "serialport/**/*"
+      - "@serialport/**/*"
+      - "cmake-js/**/*"
+      - "*-case/**/*"
+      - "*-case-first/**/*"
+      - "underscore/**/*"
+      - "crc/**/*"
+      - "jszip/**/*"
+      - "@sentry/**/*"
+      - "tslib/**/*"
+      - "semver/**/*"
+      - "luxon/**/*"
+
 # Config for OSX dmg
 dmg:
-  artifactName: '${name}-${platform}.${ext}'
+  artifactName: "${productName}-${version}.${ext}"
   contents:
     - type: link
       path: /Applications

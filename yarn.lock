@@ -1583,22 +1583,22 @@ crc@^3.8.0:
   dependencies:
     buffer "^5.1.0"
 
-crimson-node@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/crimson-node/-/crimson-node-0.0.3.tgz#5c9490e7f3192b441ca28ac8dda28ba94144f121"
-  integrity sha512-GymNsKvbFTy+SvQGCqxARpqkvu5Gf3ZTdkNvh6Z7mpyJfqfcxL8pY5mWU8vdagReDkq66j6PHpTIOYote4DIzQ==
+crimson-node@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/crimson-node/-/crimson-node-0.0.5.tgz#c8b063ca5bb51b198b8edb9b3d1038ea87b539a1"
+  integrity sha512-BYEM0fATnLXo2B5ox910xhWEUHEvUGKwaZyxDJkFh3KmnQhd5fVRmDMDkNOw72SJtAEZekWW/IJcxDJcbun8ZQ==
   dependencies:
     node-addon-api "^7.0.0"
     node-gyp "^10.0.1"
     node-gyp-build "^4.6.1"
 
-crimson-sdk@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/crimson-sdk/-/crimson-sdk-1.4.2.tgz#e5b4244e06135e01b16896a79ed7fa806271a246"
-  integrity sha512-qfNfPWDpNIuPnMxjNPMyDJpzDS2uNwln8sD5+rx6NieBTfSKADx7j/dKpCT1RMggyizI9biUCQrYxHKsdHGlKA==
+crimson-sdk@^1.4.3:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/crimson-sdk/-/crimson-sdk-1.4.3.tgz#23ddb5876678e2724625bd22803634f8793c8bfa"
+  integrity sha512-YEJiJXZquLLCXQdoPTwN4XwlxaYMCT2Tt3NbP/M3daVX7VamgRMrlkQyrD9/dz0/uXiZ0XVRmiiVsLWPl6dSlw==
   dependencies:
     cmsn-noble "3.1.6"
-    crimson-node "^0.0.3"
+    crimson-node "^0.0.5"
 
 cross-spawn@^7.0.0, cross-spawn@^7.0.1, cross-spawn@^7.0.3:
   version "7.0.3"

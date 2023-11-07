@@ -1,10 +1,11 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
-import { CMSNDevice, cmsn } from 'crimson-sdk'
+import { CMSNDevice, cmsn_electron } from 'crimson-sdk'
 import './samples/electron-store'
 import './samples/npm-esm-packages'
 
+const cmsn = cmsn_electron;
 const cmsnRequest = 'cmsn-request';
 const cmsnResponse = 'cmsn-response';
 
@@ -36,8 +37,6 @@ async function createWindow() {
     var cmd = arg.cmd;
     switch (cmd) {
       case 'initSDK':
-        //attention, meditation, social
-        cmsn.setDataSubscription(true, false, false)
         await cmsn.initSDK(false, (e: Error | null) => {
           if (e && e.message) {
             console.error(e.message);
@@ -47,6 +46,9 @@ async function createWindow() {
           console.log('adapterAvailable >>>', adapterAvailable);
           event.reply(cmsnResponse, { cmd: 'onAdapterAvailableChanged', adapterAvailable: adapterAvailable });
         });
+        // subscribe data: attention, meditation, social
+        cmsn.setDataSubscription(true, true, true)
+        cmsn.setSocialSession(false)
         break;
       case 'disposeSDK':
         await cmsn.disposeSDK();
